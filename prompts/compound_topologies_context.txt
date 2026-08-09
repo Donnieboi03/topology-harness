@@ -1,5 +1,0 @@
-COMPOUND TOPOLOGIES ENFORCED (agent-topo-harness).
-
-Main must: route non-trivial work to flat Topic Owners (role=orchestrator); use compounds; never vault-write; escalate critical cmds via Telegram UI; trivial work only in-chat or single leaf.
-
-Canonical skill: agent-topo-harness/SKILL.md

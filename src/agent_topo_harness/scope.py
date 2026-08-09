@@ -21,11 +21,13 @@ def build_scope_card(
     """Build the structured Main→TO envelope.
 
     ``composition`` is a non-binding hint (compound id or freeform).
-    ``persist`` is ``vault`` or ``none``.
+    ``persist``: ``none`` (default), ``durable``, or host alias ``vault`` (= durable).
     """
     persist_norm = (persist or "none").strip().lower()
-    if persist_norm not in {"vault", "none"}:
-        raise ValueError("persist must be 'vault' or 'none'")
+    if persist_norm == "vault":
+        persist_norm = "durable"
+    if persist_norm not in {"durable", "none"}:
+        raise ValueError("persist must be 'none', 'durable', or alias 'vault'")
 
     card: dict[str, Any] = {
         "topic": topic.strip(),

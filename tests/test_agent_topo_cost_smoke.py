@@ -47,7 +47,9 @@ def test_scope_card_and_urn() -> None:
         persist="vault",
     )
     assert card["composition"] == "debug-compound"
-    assert card["persist"] == "vault"
+    assert card["persist"] == "durable"  # vault alias
+    card2 = build_scope_card(topic="t", goal="g", persist="none")
+    assert card2["persist"] == "none"
     urn = make_topology_urn("planes", "auth-refresh", ulid="01TEST")
     assert urn == "topology:planes:auth-refresh:01TEST"
 
@@ -71,9 +73,13 @@ def test_critical_payload() -> None:
         topic_title="Cleanup",
     )
     assert payload["kind"] == "critical_command_approval"
-    assert payload["channel"] == "telegram"
+    assert payload["channel"] == "host"
     assert payload["command"] == "rm -rf /tmp/x"
     assert payload["status"] == "pending"
+    from agent_topo_harness.escalate import for_hermes_telegram
+
+    tg = for_hermes_telegram("rm -rf /tmp/x", "cleanup", "topic-1")
+    assert tg["channel"] == "telegram"
 
 
 def test_docs_templates_live_in_harness() -> None:

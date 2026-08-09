@@ -9,6 +9,8 @@ import pytest
 
 _HOOK = (
     Path(__file__).resolve().parents[1]
+    / "adapters"
+    / "hermes"
     / "hooks"
     / "enforce_compound_topologies.py"
 )
@@ -28,7 +30,7 @@ def test_blocks_main_vault_store(hook):
         {"tool_name": "vault_store_fact", "tool_input": {"fact": "x"}}
     )
     assert out and out["action"] == "block"
-    assert "Main must not write" in out["message"]
+    assert "durable memory" in out["message"]
 
 
 def test_allows_subagent_vault(hook):

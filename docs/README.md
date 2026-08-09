@@ -1,6 +1,6 @@
 # agent-topo-harness docs
 
-Canonical Compound Topologies policy (this harness owns these files — not Virgil `skills/.../references`).
+Canonical Compound Topologies policy (this harness owns these files).
 
 | Doc | Topic |
 | :--- | :--- |
@@ -9,9 +9,10 @@ Canonical Compound Topologies policy (this harness owns these files — not Virg
 | [scope-and-tooling-card.md](scope-and-tooling-card.md) | Main→TO envelope |
 | [to-brief-template.md](to-brief-template.md) | TO brief |
 | [evidence-gates.md](evidence-gates.md) | Critiquer exits |
-| [critical-escalation.md](critical-escalation.md) | Telegram critical path |
-| [vault-write-policy.md](vault-write-policy.md) | TO-only writes |
+| [critical-escalation.md](critical-escalation.md) | Critical ladder (portable) |
+| [durable-memory.md](durable-memory.md) | Optional persist / TO-only writes |
+| [vault-write-policy.md](vault-write-policy.md) | Pointer → durable-memory + Hermes Obsidian |
 | [cost-analysis.md](cost-analysis.md) | Cost + A/B smoke |
 | [graph_telemetry.md](graph_telemetry.md) | Telemetry fields |
 
-Start from [../SKILL.md](../SKILL.md).
+Host mappings: [`../adapters/hermes/`](../adapters/hermes/). Start from [../SKILL.md](../SKILL.md).

@@ -1,4 +1,7 @@
-"""Critical-command escalation payloads for Main → Hermes Telegram UI."""
+"""Critical-command escalation payloads (host-agnostic ladder).
+
+Last-mile channel (telegram, slack, …) is set by the host adapter.
+"""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -16,12 +19,13 @@ def build_critical_approval_payload(
     batch_id: str | None = None,
     related_commands: Sequence[str] | None = None,
     deny_action: str = "cancel",
+    channel: str = "host",
     metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Build a dict suitable for Main→Telegram critical-command mediation.
+    """Build a dict for Main → host human-approval channel.
 
-    Path: Leaf → TO (filter/batch/veto) → Main → Hermes Telegram critical UI.
-    On deny, ``deny_action`` defaults to ``cancel`` (abort the pending work).
+    Path: Leaf → TO (filter/batch/veto) → Main → host channel.
+    On deny, ``deny_action`` defaults to ``cancel``.
     """
     cmd = (command or "").strip()
     if not cmd:
@@ -31,9 +35,9 @@ def build_critical_approval_payload(
     if not (topic_id or "").strip():
         raise ValueError("topic_id is required")
 
-    payload: dict[str, Any] = {
+    return {
         "kind": "critical_command_approval",
-        "channel": "telegram",
+        "channel": (channel or "host").strip().lower() or "host",
         "harness": "agent-topo-harness",
         "command": cmd,
         "rationale": rationale.strip(),
@@ -48,4 +52,20 @@ def build_critical_approval_payload(
         "created_at": datetime.now(timezone.utc).isoformat(),
         "metadata": dict(metadata or {}),
     }
-    return payload
+
+
+def for_hermes_telegram(
+    command: str,
+    rationale: str,
+    topic_id: str,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Hermes adapter helper — same payload with ``channel=telegram``."""
+    kwargs.pop("channel", None)
+    return build_critical_approval_payload(
+        command,
+        rationale,
+        topic_id,
+        channel="telegram",
+        **kwargs,
+    )

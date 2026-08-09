@@ -1,22 +1,12 @@
-# Vault write policy (TO-only)
+# Vault write policy → durable memory
 
-Durable Obsidian / KG writes under Compound Topologies:
+**Portable policy:** [durable-memory.md](durable-memory.md).
 
-| Who | Vault |
+Compound Topologies do not assume every agent has a vault. “Vault” is a **Virgil/Hermes Obsidian** mapping of the optional `persist: durable` capability.
+
+| Doc | Role |
 | :--- | :--- |
-| **Topic Owner** | **Sole agent writer** when `persist: vault` — approved facts after merge only |
-| **Main** | **Never** vault-write |
-| **Leaves** | **No** vault write; read-only retrieval OK if tooling allowlist permits |
-| **Human** | **Brain surgery** — edit notes on disk when the graph is wrong |
+| [durable-memory.md](durable-memory.md) | Core: TO-only writes when persist enabled |
+| [adapters/hermes/vault-obsidian.md](../adapters/hermes/vault-obsidian.md) | Obsidian paths, `vault_store_fact`, `persist: vault` alias |
 
-## Rules
-
-1. `persist: vault` is a run flag, not a topology. Without it, agents do not upsert.
-2. Scouts / planes / generators never call vault upsert tools — they return findings to the TO.
-3. TO upserts **merged, approved** facts only (no raw dump, no speculative identity merges).
-4. Prefer retrieve → reconcile in the brief → selective upsert.
-5. Wrong graph? Stop agents from “fixing” via Main chat; human edits on disk (**brain surgery**), then continue.
-
-## Telemetry
-
-When vault activity occurs, record `vault_writer=topic_owner` (never `main` / `leaf`). See [graph_telemetry.md](graph_telemetry.md).
+Compatibility: `agent_topo_harness.vault_policy` re-exports `durable_memory`.

@@ -19,7 +19,7 @@ Main (talking agent)
 - **Topic Owner** may nest-delegate pattern **leaves** only (`role=orchestrator`, depth 1). May compose **any** atom mix / invent novel compounds under invariants.
 - **Leaves** never spawn.
 
-**Memory** is not a topology. Attach `persist: vault` when the topic should read/write long-horizon state — **TO is the sole agent writer**. Main never vault-writes; leaves are read-only. Human **brain surgery** = edit Obsidian on disk. See [vault-write-policy.md](vault-write-policy.md).
+**Durable memory** is not a topology and is **optional**. When the host has a store and Main sets `persist: durable` (or a host alias like `vault`), **TO is the sole agent writer**. Main never writes; leaves are read-only. See [durable-memory.md](durable-memory.md). Obsidian specifics: Hermes adapter.
 
 ## Pattern library (atoms)
 
@@ -66,9 +66,10 @@ Use in `paradigm` / topology URN — do not expose as Main’s primary vocabular
 | `moa` | Layered proposers → aggregator (rare; Topic Owner only) |
 | `adversarial` | Proposer vs red-team + referee (high-security) |
 
-## Durable memory (flag, not a topology)
+## Durable memory (optional flag, not a topology)
 
-- **`persist: vault`**: coordinate via Obsidian / KG (retrieve + approved upserts), not chat history alone.
-- **Trigger**: Long-horizon work spanning sessions.
-- **Writer**: Topic Owner only — approved facts after merge. Scouts do not dump raw notes. Main does not write. Leaves: read-only retrieval if allowlisted.
-- **Brain surgery**: human edits on disk when the graph is wrong; agents do not “fix” the vault from Main chat.
+- **`persist: none`** (default) or **`persist: durable`** (host may alias `vault`).
+- Coordinate via the host store when enabled — retrieve + approved upserts, not chat history alone.
+- **Writer**: Topic Owner only. Scouts do not dump raw notes. Main does not write. Leaves: read-only if allowlisted.
+- **Brain surgery**: human corrects the store offline; agents do not “fix” durable data from Main.
+- Details: [durable-memory.md](durable-memory.md).

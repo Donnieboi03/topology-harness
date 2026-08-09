@@ -1,7 +1,7 @@
 [project]
 name = "agent-topo-harness"
-version = "0.1.0"
-description = "Compound Topologies control plane — Main → flat Topic Owners → compounds"
+version = "0.2.0"
+description = "Compound Topologies control plane — host-agnostic Main → flat Topic Owners → compounds"
 requires-python = ">=3.11"
 dependencies = [
     "pyyaml>=6.0",

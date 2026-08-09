@@ -112,12 +112,12 @@ data["fallback_model"] = {
     "model": (models.get("fallbacks") or [block["model"]["default"]])[0],
 }
 
-# --- prefill ---
-prefill = harness / "prompts" / "compound_topologies_prefill.json"
+# --- prefill (Hermes adapter prompts) ---
+prefill = harness / "adapters" / "hermes" / "prompts" / "compound_topologies_prefill.json"
 data["prefill_messages_file"] = str(prefill.resolve())
 
-# --- hooks ---
-hook_py = harness / "hooks" / "enforce_compound_topologies.py"
+# --- hooks (Hermes adapter) ---
+hook_py = harness / "adapters" / "hermes" / "hooks" / "enforce_compound_topologies.py"
 hooks = data.setdefault("hooks", {})
 enforce_pre_tool = {
     "command": f"{hook_py.resolve()} pre_tool_call",

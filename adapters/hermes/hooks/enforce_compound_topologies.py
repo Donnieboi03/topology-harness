@@ -13,8 +13,10 @@ import os
 import sys
 from pathlib import Path
 
-_HARNESS = Path(__file__).resolve().parents[1]
-_CONTEXT_FILE = _HARNESS / "prompts" / "compound_topologies_context.txt"
+_HARNESS = Path(__file__).resolve().parents[2]  # adapters/hermes/hooks → repo root
+_CONTEXT_FILE = (
+    Path(__file__).resolve().parents[1] / "prompts" / "compound_topologies_context.txt"
+)
 
 # Tools / path signals that mean durable vault write from Main chat
 _VAULT_WRITE_TOOLS = {
@@ -120,8 +122,8 @@ def handle_pre_tool_call(event: dict) -> dict | None:
         return {
             "action": "block",
             "message": (
-                "COMPOUND TOPOLOGIES: Main must not write the Obsidian vault. "
-                "Spawn a Topic Owner with persist: vault (role=orchestrator) to upsert. "
+                "COMPOUND TOPOLOGIES: Main must not write durable memory (Obsidian vault). "
+                "Spawn a Topic Owner with persist: vault|durable (role=orchestrator) to upsert. "
                 f"Blocked tool={tool!r}."
             ),
         }

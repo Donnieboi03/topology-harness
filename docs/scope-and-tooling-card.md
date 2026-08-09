@@ -12,10 +12,10 @@ in_scope: |
 out_of_scope: |
   - …
 composition: <compound-id | freeform hint | omit>
-persist: <vault | none>
+persist: <none | durable | vault>
 tooling:
   allow:
-    - <skill-or-tool>   # prefer L1 skills, CodeGraph, repo tools
+    - <skill-or-tool>
   deny:
     - <…>
 caps:
@@ -35,9 +35,9 @@ success: |
 | `goal` / scope | Main | Yes |
 | `composition` | Main hint | No — TO may rewire / invent novel compounds |
 | `tooling.allow/deny` | Main | Yes — TO enforces on leaves |
-| `persist` | Main | Yes — if `vault`, only TO writes |
+| `persist` | Main | Yes — `none` (default) or `durable` (host may alias `vault`); only TO writes |
 | `caps` | Main | Yes — TO stops at cap |
-| `critical_watchlist` | Main (+ TO may add) | Yes — escalate via Telegram path |
+| `critical_watchlist` | Main (+ TO may add) | Yes — escalate via [critical-escalation](critical-escalation.md) → host channel |
 
 ## Trivial path (no card / no TO)
 

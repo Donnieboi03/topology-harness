@@ -1,49 +1,44 @@
 # agent-topo-harness
 
-**Compound Topologies** control plane — host-agnostic multi-agent graph doctrine (Main → flat Topic Owners → compounds of atoms).
+**Compound Topologies** — host-agnostic multi-agent control plane (Main → flat Topic Owners → compounds of atoms).
 
-Same packaging idea as [browser-harness](https://github.com/browser-use/browser-harness): a focused harness (`SKILL.md`, `docs/`, `src/`, `tests/`) you plug into any agent runtime that can spawn nested workers.
+Same packaging idea as [browser-harness](https://github.com/browser-use/browser-harness): a focused harness you plug into any agent runtime that can spawn nested workers.
 
 | Layer | What you get |
 | :--- | :--- |
-| **Doctrine** | Flat TOs, compounds (`debug-compound`, `research-build`, …), TO-owned brief, evidence gates, critical escalation |
-| **Cost / inference** | Thin leaves vs fat Main — lower tokens, faster loops, bounded model allowlists |
-| **Enforcement** | Prefill + hooks + `config/models.yaml` preference/fallback allowlist |
-| **Adapters** | `adapters/hermes/` today; other hosts plug the same SKILL |
+| **Doctrine** | Flat TOs, compounds, TO-owned brief, evidence gates |
+| **Optional** | Durable memory (TO-only writes), critical human channel — contracts, not product locks |
+| **Cost / inference** | Thin leaves vs fat Main; preference + model allowlist |
+| **Adapters** | `adapters/hermes/` (spawn patch, Obsidian, Telegram, hooks) |
 
 ```
 agent-topo-harness/
-  SKILL.md
-  install.md
+  SKILL.md docs/ src/          # portable core
   config/models.yaml
-  prompts/ hooks/
-  docs/
-  src/agent_topo_harness/
-  adapters/hermes/          # Hermes nest patch + notes
-  scripts/                  # apply into a host profile
-  tests/
+  adapters/hermes/             # Hermes/Virgil only
+  scripts/ tests/
 ```
 
 ## Quick start
 
 ```bash
 cd ~/Developer/agent-topo-harness
-./scripts/apply_hermes_delegate_patch.sh
-# Optional: also register Virgil skills dir
-VIRGIL_ROOT=~/Desktop/Code/Virgil ./scripts/apply_agent_topo_harness.sh
 uv run pytest -q
 uv run python -m agent_topo_harness.cost_smoke
+# Hermes host:
+./scripts/apply_hermes_delegate_patch.sh
+VIRGIL_ROOT=~/Desktop/Code/Virgil ./scripts/apply_agent_topo_harness.sh
 ```
 
 Paste for an agent:
 
 ```text
-Read ~/Developer/agent-topo-harness/SKILL.md and install.md.
-Use Compound Topologies (Main → flat Topic Owners → compounds of atoms).
+Read ~/Developer/agent-topo-harness/SKILL.md.
+Use Compound Topologies. Vault/Telegram are optional host mappings under adapters/hermes/.
 ```
 
 Details: [install.md](install.md).
 
 ## License
 
-MIT (unless otherwise noted when published).
+MIT

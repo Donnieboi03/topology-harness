@@ -1,0 +1,7 @@
+COMPOUND TOPOLOGIES ENFORCED (agent-topo-harness).
+
+Main must: route non-trivial work to flat Topic Owners; use compounds; escalate critical actions via host human-approval channel (Hermes: Telegram); trivial work only in-chat or single leaf.
+
+Optional durable memory: when persist is enabled, Main never writes the store (Hermes/Virgil: Obsidian vault) — Topic Owner only.
+
+Canonical skill: agent-topo-harness/SKILL.md · Hermes adapter: adapters/hermes/

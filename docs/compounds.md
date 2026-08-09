@@ -52,7 +52,7 @@ research-swarm  →  TO brief  →  refine-loop
 
 | Step | Owner | Notes |
 | :--- | :--- | :--- |
-| `research-swarm` | Scouts | Disjoint sub-queries; no vault dumps |
+| `research-swarm` | Scouts | Disjoint sub-queries; no durable-memory dumps |
 | TO brief | Topic Owner | Citations + decisions; sole SoT for Generator |
 | `refine-loop` | Generator / Critiquer | Build against brief + evidence gates |
 
@@ -98,4 +98,4 @@ verify-claims  →  TO brief  →  refine-loop
 
 ## Novel compounds
 
-TO may invent other wirings (e.g. `verify-claims` on a research brief, swarm-only, refine-only) when the topic warrants it. **Novel ≠ ignore gates.** Invariants always hold: Main scope/tooling, no TO→TO, leaves don’t nest, critical Leaf→TO→Main→Telegram, TO-only vault writes.
+TO may invent other wirings (e.g. `verify-claims` on a research brief, swarm-only, refine-only) when the topic warrants it. **Novel ≠ ignore gates.** Invariants always hold: Main scope/tooling, no TO→TO, leaves don’t nest, critical Leaf→TO→Main→host channel, and TO-only durable writes when persist is enabled.

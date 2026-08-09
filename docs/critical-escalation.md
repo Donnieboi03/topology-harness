@@ -1,18 +1,18 @@
-# Critical escalation (Telegram UI)
+# Critical escalation (portable)
 
-Destructive, irreversible, or externally visible actions must not run on leaf say-so. Path:
+Destructive, irreversible, or externally visible actions must not run on leaf say-so.
 
 ```text
-Leaf  →  Topic Owner (filter / batch / veto)  →  Main  →  Hermes Telegram critical-command UI
+Leaf  →  Topic Owner (filter / batch / veto)  →  Main  →  Host human-approval channel
 ```
 
-Do **not** invent a new Virgil approval product. Do **not** treat “type yes in CLI” as the primary story. Use the existing Hermes gateway critical-command / approval surface (same family as chat approvals — see related skill **task-approvals** and the Hermes Telegram gateway).
+The **ladder** is core doctrine. The **last mile** (Telegram, Slack, web UI, OS prompt, …) is a **host adapter**.
 
 ## What is critical (non-exhaustive)
 
-- `rm` / destructive git (`reset --hard`, force-push), production deploys
+- Destructive shell / git (`rm`, `reset --hard`, force-push), production deploys
 - Sending email/posts/messages as the user; purchasing; credential changes
-- Vault mass-delete or overwrite of canonical notes (prefer human brain surgery)
+- Mass-delete or overwrite of durable canonical data (prefer human offline edit)
 - Anything on the scope card `critical_watchlist`
 
 ## Roles
@@ -21,15 +21,15 @@ Do **not** invent a new Virgil approval product. Do **not** treat “type yes in
 | :--- | :--- |
 | **Leaf** | Detect; **pause**; package intent + risk; escalate to TO — do not execute |
 | **Topic Owner** | Filter noise, **batch** related asks, veto unsafe/out-of-scope; escalate batch to Main |
-| **Main** | Surface via Hermes **Telegram** critical-command UI; relay allow/deny |
-| **Human** | Approve or deny in Telegram |
+| **Main** | Surface via the **host** approval channel; relay allow/deny |
+| **Human** | Approve or deny |
 
 ## Deny / cancel
 
 - **Deny** → cancel that action (and dependent steps); TO records outcome; do not retry quietly.
 - Partial batch: execute only approved items; cancelled items stay cancelled.
 
-## Payload shape (Main → gateway)
+## Payload shape (Main → host channel)
 
 ```text
 critical_id: <ulid>
@@ -38,11 +38,14 @@ summary: <one line>
 risk: <why critical>
 proposed_command_or_action: <…>
 requester_role: leaf|topic_owner
+channel: <host-defined>   # e.g. telegram | slack | cli | web
 ```
 
-Main formats this for the Telegram critical-command UI the gateway already understands.
+Core helper: `agent_topo_harness.escalate.build_critical_approval_payload` (default `channel="host"`).
 
-## Related
+## Host mappings
 
-- Skill: `task-approvals` (Draft→Approved chat/Telegram pattern for Notion tasks — analogous mediation, not a substitute for critical-command on shell/actions)
-- Gateway: Hermes Telegram critical-command / approval UI
+| Host | Last mile |
+| :--- | :--- |
+| Hermes | [`adapters/hermes/critical-telegram.md`](../adapters/hermes/critical-telegram.md) |
+| Other | Wire Main to your approval UI; keep the same ladder |

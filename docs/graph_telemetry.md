@@ -10,14 +10,15 @@ Beyond cost and tokens, Compound Topologies need metadata to optimize cognitive 
 - **topology_type**: `DAG`, `Cyclic`, `TreeOfThought`, `MixtureOfAgents`, `TopicOwner`, `Compound`.
 - **control_plane**: `main | topic_owner | leaf`.
 - **pattern**: `research-swarm | refine-loop | debate | plane-audit | verify-claims | …` (atom actually running).
-- **composition** / **pattern_composition**: compound id (`debug-compound`, `research-build`, …) or ordered/parallel atom list actually wired by the TO.
+- **composition** / **pattern_composition**: compound id or ordered/parallel atom list wired by the TO.
 - **paradigm** (telemetry tag): `swarm`, `refine`, `cove`, …
 - **loop_cycle_index**: Iteration count in refine / self-correction loops.
 - **backtracked**: Boolean; true if a search path was abandoned.
-- **persist_vault**: Boolean; durable memory flag for the run.
-- **vault_writer**: always `topic_owner` when writes occur (Main/leaves never).
+- **persist_durable**: Boolean; durable memory in scope for the run (`persist_vault` legacy alias OK).
+- **durable_writer**: always `topic_owner` when writes occur (`vault_writer` legacy alias OK).
 - **evidence_gates_passed**: Boolean or per-gate map (`tests`, `typecheck`, `lint`, `docs`, …).
-- **critical_escalations**: Count (and optional ids) of Leaf→TO→Main→Telegram critical mediations.
+- **critical_escalations**: Count (and optional ids) of Leaf→TO→Main→host-channel mediations.
+- **critical_channel**: Host channel id (`telegram`, `slack`, `web`, …).
 
 ### 2. Cognitive Dynamics
 
