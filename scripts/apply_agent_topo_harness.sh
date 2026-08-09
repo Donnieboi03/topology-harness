@@ -131,38 +131,46 @@ audit_path = cfg_path.parent / "hooks" / "audit_tool_call.py"
 audit = {"command": str(audit_path), "timeout": 5}
 
 
-def _merge_hooks(existing: list, extra: dict) -> list:
-    out = []
-    seen = set()
-    for item in list(existing or []) + [extra]:
+def _merge_hooks(existing: list, *extras: dict) -> list:
+    out: list = []
+    seen: set[str] = set()
+    for item in list(existing or []) + list(extras):
         if not isinstance(item, dict):
             continue
-        cmd = str(item.get("command") or "")
-        # Drop stale enforce hooks pointing at old paths
-        if "enforce_compound_topologies.py" in cmd and cmd != extra.get("command"):
-            continue
-        if cmd in seen:
+        cmd = str(item.get("command") or "").strip()
+        if not cmd or cmd in seen:
             continue
         seen.add(cmd)
         out.append(item)
     return out
 
 
-pre_tool = list(hooks.get("pre_tool_call") or [])
-if audit_path.is_file():
-    pre_tool = _merge_hooks([audit], enforce_pre_tool)
-    for item in hooks.get("pre_tool_call") or []:
-        if isinstance(item, dict) and "enforce_compound_topologies" not in str(
-            item.get("command") or ""
-        ):
-            pre_tool = _merge_hooks(pre_tool, item)
-else:
-    pre_tool = _merge_hooks(pre_tool, enforce_pre_tool)
+# Drop any prior enforce hooks (old Virgil path or prior Developer path)
+def _without_enforce(items: list) -> list:
+    return [
+        i
+        for i in (items or [])
+        if isinstance(i, dict)
+        and "enforce_compound_topologies.py" not in str(i.get("command") or "")
+    ]
 
-hooks["pre_tool_call"] = pre_tool
-hooks["pre_llm_call"] = _merge_hooks([], enforce_pre_llm)
+
+base_pre_tool = _without_enforce(hooks.get("pre_tool_call") or [])
+if audit_path.is_file() and not any(
+    str(i.get("command") or "") == audit["command"] for i in base_pre_tool
+):
+    base_pre_tool = [audit] + base_pre_tool
+
+hooks["pre_tool_call"] = _merge_hooks(base_pre_tool, enforce_pre_tool)
+hooks["pre_llm_call"] = _merge_hooks(
+    _without_enforce(hooks.get("pre_llm_call") or []), enforce_pre_llm
+)
 if "post_tool_call" not in hooks and audit_path.is_file():
     hooks["post_tool_call"] = [audit]
+elif "post_tool_call" in hooks:
+    hooks["post_tool_call"] = _without_enforce(hooks["post_tool_call"]) or hooks[
+        "post_tool_call"
+    ]
 
 out_text = yaml.safe_dump(data, sort_keys=False, default_flow_style=False)
 if dry:
@@ -184,19 +192,58 @@ else:
     home = cfg_path.parent
     os.environ.setdefault("HERMES_HOME", str(home))
     os.environ["HERMES_ACCEPT_HOOKS"] = "1"
-    try:
+
+    def _allowlist_hooks() -> None:
         from hermes_cli.config import load_config
         from agent import shell_hooks
 
         cfg2 = load_config()
         cfg2["hooks_auto_accept"] = True
         shell_hooks.register_from_config(cfg2, accept_hooks=True)
+
+    try:
+        _allowlist_hooks()
         print("  hooks: allowlisted via HERMES_ACCEPT_HOOKS")
-    except Exception as exc:
-        print(
-            "  warn: could not auto-allowlist hooks "
-            f"({exc}); use HERMES_ACCEPT_HOOKS=1 hermes hooks doctor"
-        )
+    except Exception:
+        hermes_bin = shutil.which("hermes")
+        py = None
+        if hermes_bin:
+            line = (
+                Path(hermes_bin)
+                .read_text(encoding="utf-8", errors="ignore")
+                .splitlines()[0]
+            )
+            if line.startswith("#!"):
+                py = line[2:].strip()
+        if py:
+            import subprocess
+
+            code = (
+                "from hermes_cli.config import load_config\n"
+                "from agent import shell_hooks\n"
+                "c=load_config(); c['hooks_auto_accept']=True\n"
+                "shell_hooks.register_from_config(c, accept_hooks=True)\n"
+                "print('ok')\n"
+            )
+            r = subprocess.run(
+                [py, "-c", code],
+                env={
+                    **os.environ,
+                    "HERMES_HOME": str(home),
+                    "HERMES_ACCEPT_HOOKS": "1",
+                },
+                capture_output=True,
+                text=True,
+            )
+            if r.returncode == 0:
+                print("  hooks: allowlisted via hermes interpreter")
+            else:
+                print(f"  warn: hook allowlist failed: {r.stderr.strip()[:200]}")
+        else:
+            print(
+                "  warn: could not auto-allowlist hooks; "
+                "run with Hermes python and HERMES_ACCEPT_HOOKS=1"
+            )
 
     auth = home / "auth.json"
     or_ok = False
