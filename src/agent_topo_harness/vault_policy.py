@@ -1,8 +1,8 @@
 """Compatibility aliases for durable-memory policy.
 
-Prefer ``agent_topo_harness.durable_memory``. Vault/Obsidian specifics live in
-``adapters/hermes/vault-obsidian.md``. Virgil ``dual_write`` bridge:
-``adapters/hermes/virgil_bridge.py``.
+Prefer ``agent_topo_harness.durable_memory``. Vault/Obsidian specifics and the
+``dual_write`` bridge live in the Virgil host
+(``docs/compound-topologies/``, ``src/compound_topologies_bridge.py``).
 """
 from __future__ import annotations
 

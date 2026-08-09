@@ -28,7 +28,7 @@ When a host *has* a durable store (notes, KG, CRM, vector DB, …), writes follo
 
 | Host | Mapping |
 | :--- | :--- |
-| Hermes + Virgil Obsidian | See [`adapters/hermes/vault-obsidian.md`](../adapters/hermes/vault-obsidian.md) (`persist: vault` alias, path/tool denylist) |
-| Other | Implement the same role gate; name your store in the adapter |
+| Hermes + Virgil Obsidian | Host doc: Virgil `docs/compound-topologies/vault-obsidian.md` (`persist: vault` alias, path/tool denylist) |
+| Other | Implement the same role gate; name your store in the **host** |
 
 Core Python: `agent_topo_harness.durable_memory` (`vault_policy` is a compatibility alias).

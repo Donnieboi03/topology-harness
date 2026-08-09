@@ -2,7 +2,7 @@
 
 Optional capability: when ``persist`` is enabled, only ``topic_owner`` may
 write the host's durable store. Vault/Obsidian is a Hermes/Virgil mapping —
-see ``adapters/hermes/vault-obsidian.md``.
+see the host's ``docs/compound-topologies/vault-obsidian.md`` (Virgil).
 """
 from __future__ import annotations
 

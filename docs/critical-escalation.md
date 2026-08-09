@@ -6,7 +6,7 @@ Destructive, irreversible, or externally visible actions must not run on leaf sa
 Leaf  →  Topic Owner (filter / batch / veto)  →  Main  →  Host human-approval channel
 ```
 
-The **ladder** is core doctrine. The **last mile** (Telegram, Slack, web UI, OS prompt, …) is a **host adapter**.
+The **ladder** is core doctrine. The **last mile** (Telegram, Slack, web UI, OS prompt, …) is a **host mapping**.
 
 ## What is critical (non-exhaustive)
 
@@ -47,5 +47,5 @@ Core helper: `agent_topo_harness.escalate.build_critical_approval_payload` (defa
 
 | Host | Last mile |
 | :--- | :--- |
-| Hermes | [`adapters/hermes/critical-telegram.md`](../adapters/hermes/critical-telegram.md) |
+| Hermes | Host doc: Virgil `docs/compound-topologies/critical-telegram.md` |
 | Other | Wire Main to your approval UI; keep the same ladder |

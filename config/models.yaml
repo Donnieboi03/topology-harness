@@ -1,6 +1,6 @@
 # Compound Topologies / agent-topo-harness — model routing
 # Preference + allowlist for OpenRouter (Gemini rate-limit escape).
-# Apply into Hermes via: ./scripts/apply_agent_topo_harness.sh
+# Host applies into Hermes (Virgil: ./scripts/apply_agent_topo_harness.sh).
 
 provider: openrouter
 base_url: https://openrouter.ai/api/v1

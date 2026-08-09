@@ -1,7 +1,7 @@
 """agent-topo-harness — Compound Topologies control-plane helpers.
 
 Standalone, host-agnostic harness. Optional durable memory + critical channel
-are contracts in docs/; Hermes/Virgil mappings live under adapters/hermes/.
+are contracts in docs/; host glue (Hermes/Virgil mappings) lives in the agent host.
 """
 from __future__ import annotations
 

@@ -7,6 +7,6 @@ Compound Topologies do not assume every agent has a vault. “Vault” is a **Vi
 | Doc | Role |
 | :--- | :--- |
 | [durable-memory.md](durable-memory.md) | Core: TO-only writes when persist enabled |
-| [adapters/hermes/vault-obsidian.md](../adapters/hermes/vault-obsidian.md) | Obsidian paths, `vault_store_fact`, `persist: vault` alias |
+| Virgil `docs/compound-topologies/vault-obsidian.md` | Host: Obsidian paths, `vault_store_fact`, `persist: vault` alias |
 
 Compatibility: `agent_topo_harness.vault_policy` re-exports `durable_memory`.

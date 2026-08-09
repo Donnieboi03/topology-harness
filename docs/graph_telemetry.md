@@ -34,4 +34,4 @@ Beyond cost and tokens, Compound Topologies need metadata to optimize cognitive 
 
 ## JSON Telemetry Schema
 
-Stored in `references/graph_telemetry_schema.json` when present. Prefer fields above when extending the schema so A/B cost smoke and session rollup share naming with **agent-topo-harness**.
+Prefer the field names above when extending host telemetry so A/B cost smoke and session rollup share naming with **agent-topo-harness**. A formal JSON schema file is optional and not shipped in this repo yet.

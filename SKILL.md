@@ -1,6 +1,6 @@
 ---
 name: agent-topo-harness
-description: "Compound Topologies control plane — Main → flat Topic Owners → compounds of atoms. Host-agnostic; optional durable memory + critical human channel via adapters."
+description: "Compound Topologies control plane — Main → flat Topic Owners → compounds of atoms. Host-agnostic; optional durable memory + critical human channel via host mappings."
 version: 0.2.0
 ---
 
@@ -13,7 +13,7 @@ Control plane for **Compound Topologies**: baseline pattern **atoms** composed i
 | **A** | Monolithic chat agent |
 | **B** | Compound Topologies (Main → flat Topic Owners → pattern leaves) |
 
-**Agent Topologies** = catalog brand. Plugs into **any** agent host that can spawn nested workers. Install / adapters: [install.md](install.md).
+**Agent Topologies** = catalog brand. Plugs into **any** agent host that can spawn nested workers. Install / host wiring: [install.md](install.md).
 
 ## Core (required)
 
@@ -31,7 +31,7 @@ Control plane for **Compound Topologies**: baseline pattern **atoms** composed i
 
 Compounds are the default unit of work ([docs/compounds.md](docs/compounds.md)). Evidence gates on refine/critique ([docs/evidence-gates.md](docs/evidence-gates.md)).
 
-## Optional capabilities (adapters)
+## Optional capabilities (host mappings)
 
 | Capability | Core contract | Not assumed |
 | :--- | :--- | :--- |
@@ -40,7 +40,7 @@ Compounds are the default unit of work ([docs/compounds.md](docs/compounds.md)).
 | **Spawn primitive** | Nest TO→leaves at depth 1 | Hermes `delegate_task` |
 | **Model routing** | Preference + allowlist ([config/models.yaml](config/models.yaml)) | OpenRouter |
 
-Hermes/Virgil mappings: [`adapters/hermes/`](adapters/hermes/) (nest patch, Obsidian vault, Telegram, hooks/prefill).
+Hermes/Virgil mappings are **host-owned** (Virgil: `docs/compound-topologies/`, nest patch, hooks/prefill). See [install.md](install.md).
 
 ## Docs
 
@@ -82,7 +82,7 @@ Modules: `compounds`, `scope`, `evidence`, `escalate`, `durable_memory` (`vault_
 - [ ] Scope + tooling card (+ optional composition) to each TO
 - [ ] Work runs as a compound (or justified novel composition)
 - [ ] TO owns brief before producer; evidence exits enforced
-- [ ] Critical path uses host human-approval channel (adapter)
-- [ ] If persist enabled → TO-only durable writes (adapter maps store)
+- [ ] Critical path uses host human-approval channel
+- [ ] If persist enabled → TO-only durable writes (host maps the store)
 - [ ] Models subset of `config/models.yaml` allowlist when using harness routing
-- [ ] Host adapter applied if using Hermes (`apply_*.sh`); gateway restarted
+- [ ] Host glue applied if using Hermes (Virgil `apply_*.sh`); gateway restarted
