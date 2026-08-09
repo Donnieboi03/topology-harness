@@ -34,7 +34,7 @@ VIRGIL_ROOT=/path/to/Virgil ./scripts/apply_agent_topo_harness.sh
 | Piece | Source | Effect |
 | :--- | :--- | :--- |
 | Nest patch | `adapters/hermes/delegate_tool/` | TO can nest-delegate leaves |
-| Prefill + hooks | `adapters/hermes/prompts/`, `hooks/` | Enforce compounds + Main durable-write deny (Obsidian) |
+| Prefill + hooks | `adapters/hermes/prompts/`, `adapters/hermes/hooks/` | Enforce compounds + Main durable-write deny (Obsidian) |
 | Models | `config/models.yaml` | OpenRouter preference + allowlist |
 | `external_dirs` | harness root (+ `$VIRGIL_ROOT/skills`) | Discovers this `SKILL.md` |
 

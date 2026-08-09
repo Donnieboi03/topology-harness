@@ -12,7 +12,7 @@ in_scope: |
 out_of_scope: |
   - …
 composition: <compound-id | freeform hint | omit>
-persist: <none | durable | vault>
+persist: <none | durable>   # host alias: vault → durable
 tooling:
   allow:
     - <skill-or-tool>
@@ -35,7 +35,7 @@ success: |
 | `goal` / scope | Main | Yes |
 | `composition` | Main hint | No — TO may rewire / invent novel compounds |
 | `tooling.allow/deny` | Main | Yes — TO enforces on leaves |
-| `persist` | Main | Yes — `none` (default) or `durable` (host may alias `vault`); only TO writes |
+| `persist` | Main | Yes — `none` (default) or `durable` (Hermes/Virgil may alias `vault`); only TO writes |
 | `caps` | Main | Yes — TO stops at cap |
 | `critical_watchlist` | Main (+ TO may add) | Yes — escalate via [critical-escalation](critical-escalation.md) → host channel |
 

@@ -36,7 +36,7 @@ Copy into the TO goal / artifact store after atom findings. Generator and other 
 - Forbidden: …
 
 ## Persist
-- persist: none | durable | vault
+- persist: none | durable   # vault = host alias of durable
 - Durable notes (TO writes only if persist enabled): …
 
 ## Critical watchlist

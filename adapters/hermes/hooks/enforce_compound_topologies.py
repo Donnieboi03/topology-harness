@@ -13,7 +13,6 @@ import os
 import sys
 from pathlib import Path
 
-_HARNESS = Path(__file__).resolve().parents[2]  # adapters/hermes/hooks → repo root
 _CONTEXT_FILE = (
     Path(__file__).resolve().parents[1] / "prompts" / "compound_topologies_context.txt"
 )

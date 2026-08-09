@@ -9,6 +9,7 @@ Plugs **Compound Topologies** into Hermes / hermes-agent. Core doctrine stays ho
 | `prompts/` | Hermes Main prefill + per-turn context (spawn via `delegate_task`, Obsidian, Telegram) |
 | `vault-obsidian.md` | Durable-memory → Obsidian mapping |
 | `critical-telegram.md` | Critical ladder → Telegram UI |
+| `virgil_bridge.py` | Optional Virgil `dual_write` helper (not in core package) |
 | `../../scripts/apply_hermes_delegate_patch.sh` | Apply nest patch |
 | `../../scripts/apply_agent_topo_harness.sh` | Wire config + this adapter’s hooks/prompts/models |
 

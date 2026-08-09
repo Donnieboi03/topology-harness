@@ -1,9 +1,10 @@
 """Synthetic A vs B cost smoke asserts for Compound Topologies.
 
-Run from Virgil repo root:
+Run from the harness checkout:
 
-  python -m src.agent_topo_harness.cost_smoke
-  python scripts/agent_topo_cost_smoke.py
+  uv run python -m agent_topo_harness.cost_smoke
+
+Virgil thin wrapper (optional): ``python scripts/agent_topo_cost_smoke.py``.
 """
 from __future__ import annotations
 

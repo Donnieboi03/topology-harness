@@ -4,8 +4,8 @@
 # Updates $HERMES_HOME/config.yaml (default: ~/.hermes/profiles/virgil-executor):
 #   - skills.external_dirs += this harness (+ $VIRGIL_ROOT/skills when set)
 #   - model / delegation / fallback_providers from config/models.yaml
-#   - prefill_messages_file → prompts/compound_topologies_prefill.json
-#   - hooks → hooks/enforce_compound_topologies.py
+#   - prefill_messages_file → adapters/hermes/prompts/compound_topologies_prefill.json
+#   - hooks → adapters/hermes/hooks/enforce_compound_topologies.py
 #
 # Usage:
 #   ./scripts/apply_agent_topo_harness.sh
