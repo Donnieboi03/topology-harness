@@ -10,24 +10,30 @@ Control plane for **Compound Topologies**: baseline pattern **atoms** composed i
 
 | Label | Meaning |
 | :--- | :--- |
-| **A** | Monolithic chat agent |
+| **A** | Monolithic chat agent (one transcript, no sub-agents) |
 | **B** | Compound Topologies (Main → flat Topic Owners → pattern leaves) |
 
 **Agent Topologies** = catalog brand. Plugs into **any** agent host that can spawn nested workers. Install / host wiring: [install.md](install.md).
 
+### Cost / when to use a TO (measured truth)
+
+Main **gates** topology: stay in-chat for chit-chat and trivial asks; open a Topic Owner only for non-trivial, multi-step, or multi-source work (and **one TO per distinct topic**).
+
+Live A/B smokes do **not** support “B is always cheaper.” Fair one-shot often has **A ≤ B** on $ and wall-clock (graph overhead). B’s real wins: **cross-topic isolation**, **scoped tools**, **sticky thin leaves** when fat work would multiply inside A, and **parallel leaves** for latency. Details: [docs/cost-analysis.md](docs/cost-analysis.md).
+
 ## Core (required)
 
-1. **Main** — talking agent; routes non-trivial work; scope + tooling card; optional `composition:` hint; mediates critical approvals via the **host** human channel. Does not run heavy paradigms in-chat.
-2. **Topic Owner** — builds compounds from atoms; owns the brief; nest-delegates leaves only (depth 1). Sole agent writer of durable memory **when** persist is enabled.
+1. **Main** — talking agent; **decides** Main-only vs TO; routes non-trivial work; scope + tooling card; optional `composition:` hint; mediates critical approvals via the **host** human channel. Does not run heavy paradigms in-chat.
+2. **Topic Owner** — builds compounds from atoms; owns the brief; nest-delegates leaves only (depth 1). Sole agent writer of durable memory **when** persist is enabled. Context is **topic-local** (no other topics’ junk).
 3. **Leaves** — job-sized context; no nest-delegate; no durable writes.
 
 | Caller | May spawn | Must not |
 | :--- | :--- | :--- |
-| **Main** | Flat Topic Owner(s); or one trivial leaf | Nested TOs; heavy work in-chat |
+| **Main** | Flat Topic Owner(s); or one trivial leaf | Nested TOs; heavy work in-chat; TO for pure chit-chat |
 | **Topic Owner** | Pattern leaves / atom mix | Another TO; raw scout dumps to Main |
 | **Leaf** | Nothing | Nest-delegate |
 
-**Trivial:** Main in-chat for `ls`/one-shot; larger single job → one leaf. Never a TO.
+**Trivial:** Main in-chat for `ls` / one-shot Q&A; larger single job → one leaf. Never a TO.
 
 Compounds are the default unit of work ([docs/compounds.md](docs/compounds.md)). Evidence gates on refine/critique ([docs/evidence-gates.md](docs/evidence-gates.md)).
 
@@ -53,7 +59,7 @@ Hermes/Virgil mappings are **host-owned** (Virgil: `docs/compound-topologies/`, 
 | [docs/evidence-gates.md](docs/evidence-gates.md) | Critiquer exits |
 | [docs/critical-escalation.md](docs/critical-escalation.md) | Critical ladder (portable) |
 | [docs/durable-memory.md](docs/durable-memory.md) | Optional persist policy |
-| [docs/cost-analysis.md](docs/cost-analysis.md) | Costing + A/B smoke |
+| [docs/cost-analysis.md](docs/cost-analysis.md) | Cost truth (measured A/B) + smoke |
 | [docs/graph_telemetry.md](docs/graph_telemetry.md) | Telemetry fields |
 
 ## Compounds (prefer)
@@ -85,4 +91,5 @@ Modules: `compounds`, `scope`, `evidence`, `escalate`, `durable_memory` (`vault_
 - [ ] Critical path uses host human-approval channel
 - [ ] If persist enabled → TO-only durable writes (host maps the store)
 - [ ] Models subset of `config/models.yaml` allowlist when using harness routing
+- [ ] Main gated TO correctly (no TO for pure chit-chat; one TO per distinct topic)
 - [ ] Host glue applied if using Hermes (Virgil `apply_*.sh`); gateway restarted

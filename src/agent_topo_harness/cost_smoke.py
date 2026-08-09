@@ -1,5 +1,7 @@
 """Synthetic A vs B cost smoke asserts for Compound Topologies.
 
+Fair baseline: one user-turn of heavy work + one retry for BOTH arms.
+
 Run from the harness checkout:
 
   uv run python -m agent_topo_harness.cost_smoke
@@ -22,12 +24,14 @@ FAT_C0 = 200_000
 
 
 def run_smoke() -> dict[str, float]:
-    """Run synthetic asserts; raise AssertionError on failure. Return key figures."""
-    a_fat = cost_A(FAT_C0, T_A=20, N_retries=4)
-    b_fat = cost_B(FAT_C0, N_retries=1)
-    assert b_fat < a_fat, (
-        f"fat C0={FAT_C0}: expected cost_B < cost_A, got B={b_fat:.4f} A={a_fat:.4f}"
-    )
+    """Run synthetic asserts; raise AssertionError on failure. Return key figures.
+
+    One-turn + one-retry is *not* asserted as B < A — that asymmetry was the
+    old multi-turn/retry model. Fair one-shot often has A ≤ B; B's win shows up
+    when Main stays fat but work is isolated across topics / many work rounds.
+    """
+    a_one = cost_A(FAT_C0, T_A=1, N_retries=1)
+    b_one = cost_B(FAT_C0, T_A=1, N_retries=1)
 
     trivial_main = cost_trivial_main_only()
     trivial_forced_to = cost_forced_topic_owner_trivial()
@@ -40,9 +44,12 @@ def run_smoke() -> dict[str, float]:
         "p_in_per_m": P_IN_PER_M,
         "p_out_per_m": P_OUT_PER_M,
         "p_cache_per_m": P_CACHE_PER_M,
-        "cost_A_fat": a_fat,
-        "cost_B_fat": b_fat,
-        "ratio_A_over_B": a_fat / b_fat if b_fat else float("inf"),
+        "cost_A_one_turn_one_retry": a_one,
+        "cost_B_one_turn_one_retry": b_one,
+        "ratio_A_over_B": a_one / b_one if b_one else float("inf"),
+        # back-compat keys for older readers
+        "cost_A_fat": a_one,
+        "cost_B_fat": b_one,
         "trivial_main": trivial_main,
         "trivial_forced_to": trivial_forced_to,
     }
@@ -58,9 +65,14 @@ def main() -> None:
         f"p_cache=${figures['p_cache_per_m']}/1M"
     )
     print(
-        f"  fat C0={FAT_C0}: "
-        f"A=${figures['cost_A_fat']:.4f}  B=${figures['cost_B_fat']:.4f}  "
+        f"  fair one-turn + one-retry C0={FAT_C0}: "
+        f"A=${figures['cost_A_one_turn_one_retry']:.4f}  "
+        f"B=${figures['cost_B_one_turn_one_retry']:.4f}  "
         f"(A/B={figures['ratio_A_over_B']:.2f}×)"
+    )
+    print(
+        "  note: A≤B on one-shot is expected; B wins on multi-topic isolation / "
+        "many fat work rounds."
     )
     print(
         f"  trivial: main=${figures['trivial_main']:.4f}  "

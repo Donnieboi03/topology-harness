@@ -8,7 +8,7 @@ A focused harness you plug into any agent runtime that can spawn nested workers.
 | :--- | :--- |
 | **Doctrine** | Flat TOs, compounds, TO-owned brief, evidence gates |
 | **Optional** | Durable memory (TO-only writes), critical human channel — contracts, not product locks |
-| **Cost / inference** | Thin leaves vs fat Main; preference + model allowlist |
+| **Cost / inference** | Main gates TO vs in-chat; thin topic leaves; model allowlist. **Not** “always cheaper than monolith” — see [docs/cost-analysis.md](docs/cost-analysis.md) |
 | **Host glue** | Owned by the agent host (spawn patch, hooks, prefill, vault/Telegram) — not this repo |
 
 ```

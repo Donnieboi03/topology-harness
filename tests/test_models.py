@@ -32,8 +32,27 @@ def test_role_model_aliases():
 def test_hermes_model_block_shape():
     block = hermes_model_block()
     assert block["model"]["provider"] == "openrouter"
-    assert block["delegation"]["model"] == "google/gemini-3.5-flash"
+    assert block["model"]["default"] == "google/gemini-3-flash-preview"
+    assert block["delegation"]["model"] == "google/gemini-3-flash-preview"
     assert isinstance(block["fallback_providers"], list)
     assert block["fallback_providers"][0]["provider"] == "openrouter"
-    # secondary gemini at end
+    models = [f["model"] for f in block["fallback_providers"]]
+    assert models[0] == "google/gemini-2.5-flash"
     assert block["fallback_providers"][-1]["provider"] == "gemini"
+    assert block["fallback_providers"][-1]["model"] == "gemini-2.5-flash"
+
+
+def test_roles_premium_only_gen_critiquer():
+    cfg = load_models_config()
+    assert cfg["roles"]["topic_owner"] == "google/gemini-3-flash-preview"
+    assert cfg["roles"]["scout"] == "google/gemini-3-flash-preview"
+    assert cfg["roles"]["generator"] == "google/gemini-3.5-flash"
+    assert cfg["roles"]["critiquer"] == "google/gemini-3.5-flash"
+    assert cfg["preference"]["delegation_model"] == "google/gemini-3-flash-preview"
+
+
+def test_fallbacks_omit_flash_preview_as_first_when_default():
+    """Main/delegation already on 3-flash — first failover is 2.5."""
+    cfg = load_models_config()
+    assert cfg["fallbacks"][0] == "google/gemini-2.5-flash"
+    assert "google/gemini-3.5-flash" not in cfg["fallbacks"]

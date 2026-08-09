@@ -16,12 +16,17 @@ from agent_topo_harness.vault_policy import assert_can_write
 
 def test_cost_smoke_passes() -> None:
     figures = run_smoke()
-    assert figures["cost_B_fat"] < figures["cost_A_fat"]
     assert figures["trivial_main"] < figures["trivial_forced_to"]
+    assert figures["cost_A_one_turn_one_retry"] > 0
+    assert figures["cost_B_one_turn_one_retry"] > 0
 
 
-def test_fat_c0_b_cheaper_than_a() -> None:
-    assert cost_B(FAT_C0, N_retries=1) < cost_A(FAT_C0, N_retries=4)
+def test_fair_one_turn_one_retry_defaults() -> None:
+    """Same turn/retry knobs; one-shot often has A ≤ B (graph overhead)."""
+    a = cost_A(FAT_C0, T_A=1, N_retries=1)
+    b = cost_B(FAT_C0, T_A=1, N_retries=1)
+    assert a > 0 and b > 0
+
 
 
 def test_compounds_registry() -> None:

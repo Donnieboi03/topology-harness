@@ -34,9 +34,9 @@ plane-audit  →  TO brief  →  refine-loop
 
 | Step | Owner | Notes |
 | :--- | :--- | :--- |
-| `plane-audit` | Leaves | Orthogonal failure lenses (e.g. repro ∥ regression ∥ env) |
+| `plane-audit` | Leaves | Orthogonal failure lenses (e.g. repro ∥ regression ∥ env); **sticky per plane** |
 | TO brief | Topic Owner | Merge plane findings; checklist for Generator |
-| `refine-loop` | Generator / Critiquer | Hard evidence exits; fail → another round |
+| `refine-loop` | Generator / Critiquer | Hard evidence exits; **sticky** Gen/Critiquer until TO releases |
 
 **When:** Bugs, regressions, “works on my machine,” multi-cause failures. Prefer this over inventing a first-class `debug-loop` atom.
 
@@ -52,9 +52,9 @@ research-swarm  →  TO brief  →  refine-loop
 
 | Step | Owner | Notes |
 | :--- | :--- | :--- |
-| `research-swarm` | Scouts | Disjoint sub-queries; no durable-memory dumps |
+| `research-swarm` | Scouts | Disjoint sub-queries; **sticky per lens**; no durable-memory dumps |
 | TO brief | Topic Owner | Citations + decisions; sole SoT for Generator |
-| `refine-loop` | Generator / Critiquer | Build against brief + evidence gates |
+| `refine-loop` | Generator / Critiquer | Sticky Gen/Critiquer; evidence gates |
 
 **When:** New feature / integration with unknown surface area.
 
@@ -70,9 +70,9 @@ debate  →  plane-audit  →  optional refine-loop
 
 | Step | Owner | Notes |
 | :--- | :--- | :--- |
-| `debate` | Additor / Reductor / Consul | Expand vs cut; tie-break in goal |
-| `plane-audit` | Planes | Independent lenses on the Consul decision (**≠** debate) |
-| `refine-loop` | Optional | Only if implementation is in-scope for this topic |
+| `debate` | Additor / Reductor / Consul | Expand vs cut; sticky roles; tie-break in goal |
+| `plane-audit` | Planes | Independent lenses (**≠** debate); sticky per plane |
+| `refine-loop` | Optional | Sticky Gen/Critiquer if implementation is in-scope |
 
 **When:** Architecture / roadmap choices where both value debate and catastrophic-dimension audits matter. Keep `debate` and `plane-audit` distinct.
 

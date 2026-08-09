@@ -6,22 +6,26 @@ provider: openrouter
 base_url: https://openrouter.ai/api/v1
 
 # Primary models by role (OpenRouter ids)
+# Cheap default for talk / TO / scouts; 3.5 only for Gen + Critiquer (pass
+# tasks[].model explicitly — Hermes delegation.model is the cheap default).
 roles:
   main: google/gemini-3-flash-preview
-  topic_owner: google/gemini-3.5-flash
+  topic_owner: google/gemini-3-flash-preview
   generator: google/gemini-3.5-flash
   critiquer: google/gemini-3.5-flash
   scout: google/gemini-3-flash-preview
 
-# Hermes parent chat = main; delegation default = topic_owner/generator tier
+# Hermes Main + default delegate (every child unless tasks[].model override)
 preference:
   model: google/gemini-3-flash-preview
-  delegation_model: google/gemini-3.5-flash
+  delegation_model: google/gemini-3-flash-preview
 
-# Ordered failover when primary 429 / unavailable (must be subset of allowlist)
+# Ordered failover on 429 / billing / unavailable (subset of allowlist).
+# Gemini family step-down first (cost preference during downtime):
+#   3-flash-preview → 2.5-flash → cross-vendor
+# Hermes skips chain entries that match the current model.
 fallbacks:
-  - google/gemini-3.5-flash
-  - google/gemini-3-flash-preview
+  - google/gemini-2.5-flash
   - anthropic/claude-3.5-haiku
   - openai/gpt-4.1-mini
 
@@ -33,8 +37,8 @@ allowlist:
   - anthropic/claude-3.5-haiku
   - openai/gpt-4.1-mini
 
-# Optional direct-Gemini fallback if OPENROUTER fails entirely (needs GOOGLE_API_KEY)
+# Optional direct-Gemini fallback if OpenRouter fails entirely (needs GOOGLE_API_KEY)
 secondary_provider:
   provider: gemini
-  model: gemini-3-flash-preview
+  model: gemini-2.5-flash
   base_url: https://generativelanguage.googleapis.com/v1beta

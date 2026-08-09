@@ -68,40 +68,37 @@ def _usd(tokens: float, price_per_token: float) -> float:
 
 def cost_A(
     C0: float,
-    T_A: float = 20,
-    N_retries: float = 4,
+    T_A: float = 1,
+    N_retries: float = 1,
     *,
     S: float = 2_000,
     P: float = 500,
     R: float = 40_000,
     K: float = 8_000,
     U: float = 800,
-    D: float = 15_000,
-    T_fix: float = 8,
+    D: float = 2_000,
+    T_fix: float = 1,
     n_bar: float = 6_000,
     rates: SyntheticRates = DEFAULT_RATES,
 ) -> float:
-    """Monolithic Main cost (A) with cached history prefix + fix retries.
+    """Monolithic Main cost (A) — fair one user-turn + N_retries (default 1).
 
-    First pass: cache-write C0 once, then (T_A-1) cache hits; non-history input
-    and outputs at full price. Retries tax a growing Main prefix at cache rate.
+    One turn: pay C0 once (cache write) + non-history input (skills/prompt/retrieval)
+    + output. Each retry: re-read C0(+growth) at cache rate + one fix pass on Main.
+    ``T_A`` is number of *work* turns on fat Main for the first pass (default 1).
     """
     p_in, p_out, p_c = rates.p_in, rates.p_out, rates.p_cache
 
-    # First pass — cached C0
     hist = _usd(C0, p_in) + _usd(max(T_A - 1, 0) * C0, p_c)
     new_in_per_turn = S + P + (R + K) / 2
-    first_new = _usd(T_A * new_in_per_turn, p_in)
-    first_out = _usd(T_A * U, p_out)
-    first = hist + first_new + first_out
+    first = hist + _usd(T_A * new_in_per_turn, p_in) + _usd(T_A * U, p_out)
 
-    # Retries — whole prefix at cache rate; new dialogue + tools at full input
     retry_total = 0.0
     for k in range(int(N_retries)):
-        C = C0 + k * D
+        C = C0 + (k + 1) * D
         retry_total += (
             _usd(T_fix * C, p_c)
-            + _usd(T_fix * (D / max(T_fix, 1) + n_bar), p_in)
+            + _usd(T_fix * (S + P + n_bar), p_in)
             + _usd(T_fix * U, p_out)
         )
     return first + retry_total
@@ -109,11 +106,11 @@ def cost_A(
 
 def cost_B(
     C0: float,
-    T_A: float = 20,  # unused; kept for call-signature symmetry with cost_A
+    T_A: float = 1,  # unused; kept for call-signature symmetry with cost_A
     N_retries: float = 1,
     *,
-    T_m: float = 3,
-    T_o: float = 6,
+    T_m: float = 1,
+    T_o: float = 1,
     S: float = 2_000,
     P: float = 500,
     P_o: float = 1_500,
@@ -122,52 +119,58 @@ def cost_B(
     K: float = 8_000,
     K_sum: float = 1_000,
     U: float = 800,
-    n_r: float = 4,
-    T_r: float = 3,
+    n_r: float = 3,
+    T_r: float = 1,
     P_r: float = 800,
-    L: float = 1,
-    T_g: float = 2,
+    L: float = 0,
+    T_g: float = 1,
     P_c: float = 1_000,
-    P_kg: float = 500,
-    T_m_fix: float = 2,
-    W_fix_usd: float = 0.15,
+    P_kg: float = 0,
+    T_m_fix: float = 1,
+    W_fix_usd: float | None = None,
     rates: SyntheticRates = DEFAULT_RATES,
 ) -> float:
-    """Compound Topologies cost (B): thin Main + TO + swarm + refine + retries.
+    """Compound Topologies cost (B) — fair one user-turn + N_retries (default 1).
 
-    Main C0 is cached across T_m turns; workers are mostly cold (full input).
+    One turn: Main routes once on C0; one TO brief; n_r thin scouts; optional
+    Gen/Critiquer (``L`` extra critique rounds, default 0 → one Gen pass).
+    Retry: Main re-route on cached C0 + one light worker pass (default priced
+    as one scout-equivalent if ``W_fix_usd`` is None).
     ``T_A`` is accepted for API symmetry and ignored.
     """
-    del T_A  # symmetry with cost_A; not used on the B path
+    del T_A
     p_in, p_out, p_c = rates.p_in, rates.p_out, rates.p_cache
 
-    # Main (router): cache C0
     main_hist = _usd(C0, p_in) + _usd(max(T_m - 1, 0) * C0, p_c)
-    main_new = _usd(T_m * (S + P), p_in)
-    main_out = _usd(T_m * U, p_out)
-    main = main_hist + main_new + main_out
+    main = (
+        main_hist
+        + _usd(T_m * (S + P), p_in)
+        + _usd(T_m * U, p_out)
+    )
 
-    # Topic Owner — cold / short prefix
     to_in = T_o * (S + P_o) + T_o * (R_sum + K_sum) / 2
     to = _usd(to_in, p_in) + _usd(T_o * U, p_out)
 
-    # Research scouts — cold
     per_scout_in = T_r * (S + P_r) + T_r * (R / max(n_r, 1)) / 2
     res = n_r * (_usd(per_scout_in, p_in) + _usd(T_r * U, p_out))
 
-    # Generator + critique (1+L rounds)
     code_rounds = 1 + L
     code_in = code_rounds * T_g * (S + P_c + K)
     code = _usd(code_in, p_in) + _usd(code_rounds * T_g * U, p_out)
 
-    # Small KG / vault touch
-    kg = _usd(S + P_kg, p_in) + _usd(U, p_out)
+    kg = 0.0
+    if P_kg:
+        kg = _usd(S + P_kg, p_in) + _usd(U, p_out)
 
     first = main + to + res + code + kg
 
-    # Retries: Main re-routes on cached C0; heavy work is a light worker pass
+    if W_fix_usd is None:
+        W_fix_usd = _usd(S + P_r + R / max(n_r, 1) / 2, p_in) + _usd(U, p_out)
+
     retry_main = N_retries * (
-        _usd(T_m_fix * C0, p_c) + _usd(T_m_fix * (S + P), p_in) + _usd(T_m_fix * U, p_out)
+        _usd(T_m_fix * C0, p_c)
+        + _usd(T_m_fix * (S + P), p_in)
+        + _usd(T_m_fix * U, p_out)
     )
     retry_workers = N_retries * W_fix_usd
     return first + retry_main + retry_workers
