@@ -9,7 +9,13 @@ from agent_topo_harness.cost_smoke import FAT_C0, run_smoke
 from agent_topo_harness.escalate import build_critical_approval_payload
 from agent_topo_harness.evidence import CODE_GATES, all_gates_passed, missing_gates
 from agent_topo_harness.scope import build_scope_card
-from agent_topo_harness.telemetry import make_topology_urn
+from agent_topo_harness.telemetry import (
+    make_topology_urn,
+    paradigm_for_atom,
+    resolve_paradigm,
+    sibling_telemetry_fields,
+    workflow_slug_for,
+)
 from agent_topo_harness.templates import docs_dir, load_template
 from agent_topo_harness.vault_policy import assert_can_write
 
@@ -55,8 +61,42 @@ def test_scope_card_and_urn() -> None:
     assert card["persist"] == "durable"  # vault alias
     card2 = build_scope_card(topic="t", goal="g", persist="none")
     assert card2["persist"] == "none"
-    urn = make_topology_urn("planes", "auth-refresh", ulid="01TEST")
-    assert urn == "topology:planes:auth-refresh:01TEST"
+    urn = make_topology_urn("planes", "auth-refresh--implementation", ulid="01TEST")
+    assert urn == "topology:planes:auth-refresh--implementation:01TEST"
+
+
+def test_workflow_slug_and_paradigm_rules() -> None:
+    assert workflow_slug_for("virgil-codebase-audit", role="orchestrator") == (
+        "virgil-codebase-audit--to"
+    )
+    assert workflow_slug_for("virgil-codebase-audit", "implementation") == (
+        "virgil-codebase-audit--implementation"
+    )
+    assert paradigm_for_atom("plane-audit") == "planes"
+    assert paradigm_for_atom("research-swarm") == "swarm"
+    # Named compound / atom never collapse to leaf
+    assert resolve_paradigm(atom="refine-loop") == "refine"
+    assert resolve_paradigm(compound_id="debug-compound") == "debug-compound"
+    assert resolve_paradigm(role="orchestrator") == "topic"
+    assert resolve_paradigm(role="leaf") == "leaf"
+    sib = sibling_telemetry_fields(
+        composition="debug-compound",
+        role="orchestrator",
+        topic="auth-refresh",
+        persist="vault",
+        parent_run_id="run-1",
+        sticky=True,
+    )
+    assert sib["control_plane"] == "orchestrator"
+    assert sib["durable_writer"] == "orchestrator"
+    assert sib["persist"] == "durable"
+    assert sib["parent_run_id"] == "run-1"
+    urn = make_topology_urn(
+        resolve_paradigm(atom="plane-audit"),
+        workflow_slug_for("auth-refresh", "security"),
+        ulid="01TEST",
+    )
+    assert urn == "topology:planes:auth-refresh--security:01TEST"
 
 
 def test_vault_policy_and_evidence() -> None:

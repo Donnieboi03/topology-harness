@@ -1,6 +1,6 @@
 # Durable memory (optional)
 
-Not a topology. When Main sets `persist: durable`:
+Not a topology. When Main sets `persist: durable` (host alias `vault`):
 
 1. **TO is the sole agent writer.**
 2. Main never writes.
@@ -16,3 +16,7 @@ Telemetry: `durable_writer` — always TO when writes occur.
 
 The host maps `persist: durable` to its backend (files, DB, vault). See also
 [vault-write-policy.md](vault-write-policy.md).
+
+**Virgil:** Topic work that should compound in Obsidian should open with
+`persist: vault` (doctrine + nest patch default for TO when omitted).
+Throwaway Main→leaf paths stay `persist: none`.

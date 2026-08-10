@@ -99,6 +99,16 @@ is the sole agent writer**. Main never writes; TTs are read-only. See
 
 ## Durable memory (optional flag, not a topology)
 
-- **`persist: none`** (default) or **`persist: durable`** (host may alias).
+- **`persist: none`** (harness default) or **`persist: durable`** (host may
+  alias `vault`).
+- **Virgil host:** prefer `persist: vault` on Topic Orchestrator open for
+  work that should compound in Obsidian; leave `none` only for throwaway
+  leaves / ephemeral asks.
 - **Writer**: TO only. TTs: read-only if allowlisted. Main does not write.
 - Details: [durable-memory.md](durable-memory.md).
+
+## Graph telemetry
+
+See [graph_telemetry.md](graph_telemetry.md) — URN is
+`topology:<paradigm>:<topic--lane|topic--to>:<ulid>`; composition /
+`parent_run_id` / sticky live as sibling fields.

@@ -36,6 +36,10 @@ class StickyHandle:
     lane: str | None = None
     session_id: str | None = None
     meta: dict[str, Any] = field(default_factory=dict)
+    # Graph telemetry (sibling to URN; persisted with the handle)
+    topology_urn: str | None = None
+    composition: Any = None
+    parent_run_id: str | None = None
 
     @property
     def key(self) -> str:
@@ -82,6 +86,9 @@ class StickyRegistry:
         *,
         session_id: str | None = None,
         meta: dict[str, Any] | None = None,
+        topology_urn: str | None = None,
+        composition: Any = None,
+        parent_run_id: str | None = None,
     ) -> tuple[StickyHandle, bool]:
         """Return (handle, created)."""
         t = _norm_topic(topic)
@@ -92,12 +99,21 @@ class StickyRegistry:
                     existing.session_id = session_id
                 if meta:
                     existing.meta.update(meta)
+                _merge_telemetry(
+                    existing,
+                    topology_urn=topology_urn,
+                    composition=composition,
+                    parent_run_id=parent_run_id,
+                )
                 return existing, False
             handle = StickyHandle(
                 kind="orchestrator",
                 topic=t,
                 session_id=session_id,
                 meta=dict(meta or {}),
+                topology_urn=topology_urn,
+                composition=composition,
+                parent_run_id=parent_run_id,
             )
             self._orchestrators[t] = handle
             return handle, True
@@ -111,6 +127,9 @@ class StickyRegistry:
         *,
         session_id: str | None = None,
         meta: dict[str, Any] | None = None,
+        topology_urn: str | None = None,
+        composition: Any = None,
+        parent_run_id: str | None = None,
     ) -> tuple[StickyHandle, bool]:
         t = _norm_topic(topic)
         lane_n = _norm_lane(lane)
@@ -122,6 +141,12 @@ class StickyRegistry:
                     existing.session_id = session_id
                 if meta:
                     existing.meta.update(meta)
+                _merge_telemetry(
+                    existing,
+                    topology_urn=topology_urn,
+                    composition=composition,
+                    parent_run_id=parent_run_id,
+                )
                 return existing, False
             handle = StickyHandle(
                 kind="tt",
@@ -129,15 +154,32 @@ class StickyRegistry:
                 lane=lane_n,
                 session_id=session_id,
                 meta=dict(meta or {}),
+                topology_urn=topology_urn,
+                composition=composition,
+                parent_run_id=parent_run_id,
             )
             self._tts[key] = handle
             return handle, True
 
     get_or_create_leaf = get_or_create_tt
 
-    def bind_session(self, handle: StickyHandle, session_id: str) -> StickyHandle:
+    def bind_session(
+        self,
+        handle: StickyHandle,
+        session_id: str,
+        *,
+        topology_urn: str | None = None,
+        composition: Any = None,
+        parent_run_id: str | None = None,
+    ) -> StickyHandle:
         with self._lock:
             handle.session_id = session_id
+            _merge_telemetry(
+                handle,
+                topology_urn=topology_urn,
+                composition=composition,
+                parent_run_id=parent_run_id,
+            )
             return handle
 
     def release_topic(self, topic: str) -> None:
@@ -216,15 +258,43 @@ def _norm_lane(lane: str) -> str:
     return lane_n
 
 
+def _merge_telemetry(
+    handle: StickyHandle,
+    *,
+    topology_urn: str | None = None,
+    composition: Any = None,
+    parent_run_id: str | None = None,
+) -> None:
+    """Fill telemetry fields when provided (do not clear existing with None)."""
+    if topology_urn:
+        handle.topology_urn = topology_urn
+    if composition is not None:
+        handle.composition = composition
+    if parent_run_id:
+        handle.parent_run_id = parent_run_id
+
+
 def _handle_from_dict(raw: dict[str, Any]) -> StickyHandle:
     kind_raw = str(raw.get("kind") or "tt").lower()
     kind = _KIND_ALIASES.get(kind_raw, "tt")
     if kind not in {"orchestrator", "tt"}:
         kind = "tt"
+    meta = dict(raw.get("meta") or {})
+    # Prefer first-class fields; fall back to meta keys from older writers.
+    topology_urn = raw.get("topology_urn") or meta.get("topology_urn")
+    composition = (
+        raw["composition"]
+        if "composition" in raw
+        else meta.get("composition")
+    )
+    parent_run_id = raw.get("parent_run_id") or meta.get("parent_run_id")
     return StickyHandle(
         kind=kind,  # type: ignore[arg-type]
         topic=str(raw.get("topic") or ""),
         lane=raw.get("lane"),
         session_id=raw.get("session_id"),
-        meta=dict(raw.get("meta") or {}),
+        meta=meta,
+        topology_urn=str(topology_urn) if topology_urn else None,
+        composition=composition,
+        parent_run_id=str(parent_run_id) if parent_run_id else None,
     )

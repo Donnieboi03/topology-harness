@@ -37,7 +37,14 @@ from .stubs import (
     parse_tt_stub,
     stubs_to_brief_findings,
 )
-from .telemetry import make_topology_urn
+from .telemetry import (
+    composition_field,
+    make_topology_urn,
+    paradigm_for_atom,
+    resolve_paradigm,
+    sibling_telemetry_fields,
+    workflow_slug_for,
+)
 
 __all__ = [
     "COMPOUNDS",
@@ -60,14 +67,19 @@ __all__ = [
     "hermes_model_block",
     "host_model_block",
     "load_models_config",
+    "composition_field",
     "make_topology_urn",
+    "paradigm_for_atom",
     "parse_leaf_stub",
     "parse_route_decision",
     "parse_tt_stub",
+    "resolve_paradigm",
     "role_model",
     "should_fan_scouts",
+    "sibling_telemetry_fields",
     "sticky_path_for_session",
     "stubs_to_brief_findings",
+    "workflow_slug_for",
     "write_allowed",
 ]
 

@@ -28,6 +28,9 @@ reg.save(sticky_path_for_session(state_dir, "abc"))
 | `release_topic(topic)` | Drop TO + all TTs for that topic |
 | `save` / `load` | JSON persistence for host adapters |
 
+Each handle may carry graph telemetry siblings (persisted with the registry):
+`topology_urn`, `composition`, `parent_run_id` — see [graph_telemetry.md](graph_telemetry.md).
+
 Aliases: `get_or_create_orchestrator` / `get_or_create_leaf` still work. Load accepts
 legacy `tos` / `leaves` / `kind: topic_owner|leaf` JSON.
 

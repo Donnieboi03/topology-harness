@@ -22,18 +22,37 @@ from agent_topo_harness.stubs import (
 
 def test_sticky_get_or_create_and_persist(tmp_path: Path) -> None:
     reg = StickyRegistry(host_session_id="sess1")
-    orch, created = reg.get_or_create_orchestrator("Logging Logs DB")
+    orch, created = reg.get_or_create_orchestrator(
+        "Logging Logs DB",
+        topology_urn="topology:topic:logging-logs-db--to:01A",
+        composition="research-build",
+        parent_run_id="fan-1",
+    )
     assert created and orch.topic == "logging-logs-db" and orch.kind == "orchestrator"
+    assert orch.topology_urn.endswith("--to:01A")
+    assert orch.composition == "research-build"
+    assert orch.parent_run_id == "fan-1"
     orch2, created2 = reg.get_or_create_to("logging-logs-db")  # alias
     assert not created2 and orch2 is orch
-    tt, c3 = reg.get_or_create_tt("logging-logs-db", "scout_schema")
+    tt, c3 = reg.get_or_create_tt(
+        "logging-logs-db",
+        "scout_schema",
+        topology_urn="topology:swarm:logging-logs-db--scout-schema:01B",
+        parent_run_id="fan-1",
+    )
     assert c3 and tt.lane == "scout_schema" and tt.kind == "tt"
+    assert tt.parent_run_id == "fan-1"
     reg.bind_session(orch, "child-orch-1")
     path = sticky_path_for_session(tmp_path, "sess1")
     reg.save(path)
     loaded = StickyRegistry.load(path)
     assert loaded.get_orchestrator("logging-logs-db").session_id == "child-orch-1"
+    assert loaded.get_orchestrator("logging-logs-db").topology_urn == (
+        "topology:topic:logging-logs-db--to:01A"
+    )
+    assert loaded.get_orchestrator("logging-logs-db").composition == "research-build"
     assert loaded.get_tt("logging-logs-db", "scout_schema") is not None
+    assert loaded.get_tt("logging-logs-db", "scout_schema").parent_run_id == "fan-1"
     # legacy JSON shape still loads
     legacy = {
         "hermes_session_id": "legacy",
@@ -52,7 +71,7 @@ def test_sticky_get_or_create_and_persist(tmp_path: Path) -> None:
                 "topic": "cost-audit",
                 "lane": "scout_a",
                 "session_id": "c2",
-                "meta": {},
+                "meta": {"topology_urn": "topology:leaf:cost-audit--scout-a:x"},
             }
         },
     }
@@ -61,6 +80,9 @@ def test_sticky_get_or_create_and_persist(tmp_path: Path) -> None:
     leg = StickyRegistry.load(leg_path)
     assert leg.get_orchestrator("cost-audit").session_id == "c1"
     assert leg.get_tt("cost-audit", "scout_a").kind == "tt"
+    assert leg.get_tt("cost-audit", "scout_a").topology_urn == (
+        "topology:leaf:cost-audit--scout-a:x"
+    )
     loaded.release_topic("logging-logs-db")
     assert loaded.get_orchestrator("logging-logs-db") is None
     assert loaded.lanes_for("logging-logs-db") == []
