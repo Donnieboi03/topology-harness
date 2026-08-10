@@ -1,6 +1,6 @@
-"""Orchestrator-only durable-memory write gate (host-agnostic).
+"""Topic Orchestrator (TO)-only durable-memory write gate (host-agnostic).
 
-Optional capability: when ``persist`` is enabled, only the Orchestrator
+Optional capability: when ``persist`` is enabled, only the TO
 (``topic_owner`` / ``orchestrator`` role) may write the host's durable store.
 Host-specific backends (files, vaults, DBs) are configured by the host — not
 by this harness.
@@ -32,12 +32,12 @@ def normalize_role(role: str) -> str:
 
 
 def assert_can_write(role: str) -> None:
-    """Raise PermissionError unless ``role`` is Orchestrator."""
+    """Raise PermissionError unless ``role`` is TO."""
     normalized = normalize_role(role)
     if normalized != ALLOWED_WRITE_ROLE:
         raise PermissionError(
             f"durable-memory write forbidden for role={role!r}; "
-            f"only Orchestrator ({ALLOWED_WRITE_ROLE!r}) may write "
+            f"only TO ({ALLOWED_WRITE_ROLE!r}) may write "
             f"(Main/TT never)"
         )
 

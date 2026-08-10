@@ -34,7 +34,7 @@ def run_smoke() -> dict[str, float]:
     trivial_main = cost_trivial_main_only()
     trivial_forced_to = cost_forced_topic_owner_trivial()
     assert trivial_main < trivial_forced_to, (
-        "trivial: expected main-only cheaper than forced Orchestrator path, "
+        "trivial: expected main-only cheaper than forced TO path, "
         f"got main={trivial_main:.4f} forced_orch={trivial_forced_to:.4f}"
     )
 

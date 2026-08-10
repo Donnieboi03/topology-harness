@@ -37,7 +37,7 @@ Return ONLY compact JSON (no markdown fences):
 Rules (intent of the USER message — never use message length):
 - main_only / kind=chat: ONLY pure chit-chat, greetings, usage/status meta, or host system notes with no user work ask.
 - open_topic: substantive new work when that topic is NOT already in open_topics (docs, bugs, features, audits, new skills). Invent a short kebab topic slug. Empty open_topics does NOT mean main_only.
-- to_only: continue an OPEN topic via its Orchestrator WITHOUT re-running multi-lens TT research. Prefer this when open_topics is non-empty and the user is continuing that work.
+- to_only: continue an OPEN topic via its TO WITHOUT re-running multi-lens TT research. Prefer this when open_topics is non-empty and the user is continuing that work.
 - lens_resume: user targets one/few specific TT lenses; list those lane ids in "lenses".
 - full_refan: user explicitly wants breadth re-research / re-check ALL TT lenses again.
 - Prefer to_only over full_refan. Prefer open_topic over main_only for real work asks.

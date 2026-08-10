@@ -1,6 +1,6 @@
-"""TT stub format — short findings for Orchestrator merge (not user-facing prose).
+"""TT stub format — short findings for TO merge (not user-facing prose).
 
-TTs (Topic Topology workers) extract; the Orchestrator transforms into the
+TTs (Topic Topology workers) extract; the TO transforms into the
 brief / user answer.
 """
 from __future__ import annotations
@@ -25,7 +25,7 @@ JSON shape:
 }
 
 Rules: max 5 bullets; no greetings; no "Next Step" essays; facts/citations only.
-The Orchestrator will merge stubs into the brief and speak to the user.
+The TO will merge stubs into the brief and speak to the user.
 """
 
 # Back-compat alias
@@ -111,7 +111,7 @@ parse_leaf_stub = parse_tt_stub
 
 
 def stubs_to_brief_findings(stubs: list[TTStub]) -> str:
-    """Markdown block the Orchestrator can paste under Findings (merged)."""
+    """Markdown block the TO can paste under Findings (merged)."""
     parts: list[str] = ["## Findings (from TT stubs)", ""]
     for stub in stubs:
         parts.append(f"### {stub.lane} (confidence={stub.confidence})")

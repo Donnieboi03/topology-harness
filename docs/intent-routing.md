@@ -9,12 +9,12 @@ on Main; a separate classify model is optional for measurement only.
 | Action | Meaning |
 | :--- | :--- |
 | `main_only` | Chit-chat / trivia — stay on Main |
-| `open_topic` | First substantive work on a topic — create sticky Orchestrator; may fan TTs once |
-| `to_only` | Continue open topic — **resume Orchestrator only** (default follow-up) |
-| `lens_resume` | Resume one/few sticky TT lanes, then Orchestrator merge |
+| `open_topic` | First substantive work on a topic — create sticky TO; may fan TTs once |
+| `to_only` | Continue open topic — **resume TO only** (default follow-up) |
+| `lens_resume` | Resume one/few sticky TT lanes, then TO merge |
 | `full_refan` | User explicitly wants breadth re-research — fan default TT lanes again |
 
-Prefer **`to_only` over `full_refan`**. Prefer **`main_only` over opening an Orchestrator** for trivia.
+Prefer **`to_only` over `full_refan`**. Prefer **`main_only` over opening a TO** for trivia.
 
 ## Emit format
 

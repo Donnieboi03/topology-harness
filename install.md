@@ -15,10 +15,10 @@ Python package root: `src/agent_topo_harness/`.
 
 This harness does **not** spawn workers. The agent host must:
 
-1. Enforce nest depth / role (Main → Orchestrator → TT only).
+1. Enforce nest depth / role (Main → TO → TT only).
 2. Persist sticky session ids (`StickyRegistry` + host spawn/resume).
 3. Inject Main policy (prefill / system card) including intent `route:` lines.
-4. Map optional `persist: durable` to the host’s store (Orchestrator-only writes).
+4. Map optional `persist: durable` to the host’s store (TO-only writes).
 5. Map critical escalation to the host’s human channel.
 
 Use `StickyRegistry` + intent `route:` decisions + TT stubs (see docs).

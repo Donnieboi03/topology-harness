@@ -2,7 +2,7 @@
 
 Not a topology. When Main sets `persist: durable`:
 
-1. **Orchestrator is the sole agent writer.**
+1. **TO is the sole agent writer.**
 2. Main never writes.
 3. TTs are read-only (if allowlisted).
 4. Prefer retrieve → reconcile in the brief → selective upsert.
@@ -10,7 +10,7 @@ Not a topology. When Main sets `persist: durable`:
 
 Gate: `assert_can_write("orchestrator")` (`topic_owner` alias accepted).
 
-Telemetry: `durable_writer` — always Orchestrator when writes occur.
+Telemetry: `durable_writer` — always TO when writes occur.
 
 ## Host mapping
 

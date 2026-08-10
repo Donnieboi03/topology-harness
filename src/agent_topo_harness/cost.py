@@ -185,7 +185,7 @@ def cost_trivial_main_only(
     U: float = 400,
     rates: SyntheticRates = DEFAULT_RATES,
 ) -> float:
-    """Cheap Main-in-chat path for a trivial job (no Orchestrator)."""
+    """Cheap Main-in-chat path for a trivial job (no TO)."""
     p_in, p_out, p_c = rates.p_in, rates.p_out, rates.p_cache
     hist = _usd(C0, p_in) + _usd(max(T - 1, 0) * C0, p_c)
     return hist + _usd(T * (S + P), p_in) + _usd(T * U, p_out)

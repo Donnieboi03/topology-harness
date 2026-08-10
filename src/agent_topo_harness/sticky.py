@@ -1,8 +1,8 @@
-"""Host-agnostic sticky Orchestrator / TT registry.
+"""Host-agnostic sticky TO / TT registry.
 
-Compound Topologies assume one Orchestrator handle per topic and one TT
+Compound Topologies assume one TO handle per topic and one TT
 handle per ``(topic, lane)`` until the host chat session ends (or Main /
-Orchestrator releases).
+TO releases).
 
 This module is the portable registry. Hosts store ``session_id`` (or any
 opaque handle) on each entry and map it to their spawn/resume primitive.
@@ -15,8 +15,8 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
-# Orchestrator = topic-scoped mid-tier (host role often ``orchestrator``).
-# TT = Topic Topology worker under an Orchestrator (scout / plane / gen / …).
+# TO = Topic Orchestrator (host role often ``orchestrator``).
+# TT = Topic Topology worker under a TO (scout / plane / gen / …).
 HandleKind = Literal["orchestrator", "tt"]
 
 # Persistence aliases accepted on load

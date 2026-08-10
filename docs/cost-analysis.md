@@ -10,26 +10,26 @@ Do **not** promise Compound Topologies (B) is always cheaper than monolith chat 
 | Shape | Expected stance |
 | :--- | :--- |
 | Fair **one user-turn + one retry** (synthetic `cost_smoke`) | Often **A ≤ B** — graph overhead |
-| Forced Orchestrator on trivial chat | **Main-only cheaper** — never open an Orchestrator for one-liners |
+| Forced TO on trivial chat | **Main-only cheaper** — never open a TO for one-liners |
 | Parallel TTs | Improves **latency** vs sequential TTs, **not** $/token |
 
 **What B still buys (even when $ is higher)**
 
-1. **Main gates the Orchestrator** — chit-chat stays on Main.
+1. **Main gates the TO** — chit-chat stays on Main.
 2. **Cross-topic isolation** — unrelated topics do not share one fat transcript.
 3. **Scoped tools / blast radius** — explicit toolsets on TTs.
 4. **Sticky session pool** — [`StickyRegistry`](sticky-registry.md); follow-ups use [intent routing](intent-routing.md) (`to_only` default). TTs return [stubs](tt-stubs.md).
 5. **When fat tool work multiplies inside A** — isolation pays when tools thrash.
 
-**Dominant tax:** If Main re-ingests the full archive every turn, **B ≈ A_main + graph overhead**. Isolation thins Orchestrator/TTs; it does not erase Main’s transcript tax.
+**Dominant tax:** If Main re-ingests the full archive every turn, **B ≈ A_main + graph overhead**. Isolation thins TO/TTs; it does not erase Main’s transcript tax.
 
 ## Control plane vs host
 
 | | **Host runtime** | **Compound Topologies (this harness)** |
 | :--- | :--- | :--- |
 | What it is | Chat, spawn, tools, sessions | Who may spawn whom, topic isolation, compounds, sticky, gates |
-| Spawning | Can spawn workers | Says *when* and *as what* (Main vs Orchestrator vs TT) |
-| Without this layer | Flat “Main delegates whatever” | Easy to get fat children, Orchestrator nesting, tool thrash |
+| Spawning | Can spawn workers | Says *when* and *as what* (Main vs TO vs TT) |
+| Without this layer | Flat “Main delegates whatever” | Easy to get fat children, TO nesting, tool thrash |
 
 ## Automated analysis
 
@@ -46,7 +46,7 @@ export AGENT_TOPO_STATE_DB=/path/to/host/sessions.db
 uv run python -m agent_topo_harness.cost_smoke
 ```
 
-Asserts Main-only &lt; forced Orchestrator on trivial work. Does **not** assert `cost_B < cost_A`.
+Asserts Main-only &lt; forced TO on trivial work. Does **not** assert `cost_B < cost_A`.
 
 ## Pricing — one table per report
 
@@ -61,8 +61,8 @@ On completion of a multi-worker task, report:
 
 - Total topology cost (input + output USD)
 - Token split (prompt vs completion)
-- Top token consumer (Main vs Orchestrator vs which TT)
-- Control depth (Main → Orchestrator → TTs)
+- Top token consumer (Main vs TO vs which TT)
+- Control depth (Main → TO → TTs)
 - Composition (compound id) when available
-- Whether Main should have stayed in-chat vs opened an Orchestrator
+- Whether Main should have stayed in-chat vs opened a TO
 - Sticky or cold spawn

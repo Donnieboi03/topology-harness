@@ -24,7 +24,7 @@ def build_critical_approval_payload(
 ) -> dict[str, Any]:
     """Build a dict for Main → host human-approval channel.
 
-    Path: TT → Orchestrator (filter/batch/veto) → Main → host channel.
+    Path: TT → TO (filter/batch/veto) → Main → host channel.
     On deny, ``deny_action`` defaults to ``cancel``.
     """
     cmd = (command or "").strip()

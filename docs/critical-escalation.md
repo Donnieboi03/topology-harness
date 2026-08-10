@@ -6,7 +6,7 @@ say-so.
 ## Ladder
 
 ```
-TT → Orchestrator (filter / batch / veto) → Main → host human channel
+TT → TO (filter / batch / veto) → Main → host human channel
 ```
 
 On deny: cancel (default). Helpers: `build_critical_approval_payload`.

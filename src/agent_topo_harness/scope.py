@@ -1,4 +1,4 @@
-"""Main → Orchestrator scope + tooling card builder."""
+"""Main → TO scope + tooling card builder."""
 from __future__ import annotations
 
 from typing import Any, Iterable, Sequence

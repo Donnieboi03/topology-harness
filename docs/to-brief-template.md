@@ -1,6 +1,6 @@
-# Orchestrator brief template
+# Topic Orchestrator (TO) brief template
 
-Copy into the Orchestrator goal / artifact store after TT findings. Generator
+Copy into the TO goal / artifact store after TT findings. Generator
 and other producers consume **this brief only** — not raw scout/plane dumps.
 
 TT inputs should be [stubs](tt-stubs.md) (JSON / ≤5 bullets). Paste
@@ -27,7 +27,7 @@ in your own voice for Main/user.
 
 ## Rules
 
-1. Orchestrator writes the brief; TTs do not publish competing briefs to Main.
+1. TO writes the brief; TTs do not publish competing briefs to Main.
 2. Refine-loop Generator input = brief + prior Generator artifact; Critiquer uses
    the evidence checklist.
 3. Fail evidence → revise brief or another producer round — do not lower the bar.

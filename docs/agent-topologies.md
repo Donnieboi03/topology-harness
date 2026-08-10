@@ -1,7 +1,7 @@
 # Agent Topologies (atom library)
 
 User-facing names are short verbs (**atoms**). Academic aliases (`got`, `cove`,
-`moa`, …) are **telemetry / `paradigm` tags only**. Orchestrators compose atoms
+`moa`, …) are **telemetry / `paradigm` tags only**. TOs compose atoms
 into **compounds** — see [compounds.md](compounds.md). System name: **Compound
 Topologies**; harness: **agent-topo-harness**.
 
@@ -9,7 +9,7 @@ Topologies**; harness: **agent-topo-harness**.
 
 ```
 Main (talking agent)
-  └── Orchestrator(s)     ← flat only; mid-tier (host role often orchestrator)
+  └── TO(s)     ← flat only; mid-tier (host role often orchestrator)
         ├── research-swarm
         ├── refine-loop
         ├── debate
@@ -18,25 +18,25 @@ Main (talking agent)
         └── …TTs only (no further topology spawn)
 ```
 
-- **Main** owns the flat set of Orchestrators; may pass a `composition:` hint.
-- **Orchestrator** may nest-delegate **TTs** only (`role=orchestrator`, depth 1).
+- **Main** owns the flat set of TOs; may pass a `composition:` hint.
+- **TO** may nest-delegate **TTs** only (`role=orchestrator`, depth 1).
   May compose any atom mix / invent novel compounds under invariants.
 - **TTs** never spawn.
-- **One Orchestrator = one topic.** All atoms under it stay on-topic.
+- **One TO = one topic.** All atoms under it stay on-topic.
   Directional split (scouts/planes) = lenses of the same topic; unrelated work
-  → another Orchestrator.
+  → another TO.
 
 ### Sticky TTs (reuse — session-scoped)
 
-Workers stay alive until the host session ends (or Main/Orchestrator releases a
+Workers stay alive until the host session ends (or Main/TO releases a
 topic). Tear-down-after-done forces cold respawn.
 
 Until release:
 - Prefer **reusing the same TT session** for that role/lane.
-- Same for Orchestrators: **one handle per topic**; follow-ups resume it.
+- Same for TOs: **one handle per topic**; follow-ups resume it.
 - **Registry:** [`StickyRegistry`](sticky-registry.md).
 - **Follow-ups:** [intent routing](intent-routing.md) — default `to_only`.
-- **TT outputs:** [tt stubs](tt-stubs.md) — short findings; Orchestrator writes
+- **TT outputs:** [tt stubs](tt-stubs.md) — short findings; TO writes
   the brief / user answer.
 
 This is **hygiene** (avoid thrash) — not a promise the graph is cheaper than a
@@ -50,27 +50,27 @@ monolith. See [cost-analysis.md](cost-analysis.md).
 | Plane-audit | One TT per plane | Re-check that plane after a fix |
 | Verify-claims | Draft / verifier / reconciler | Another claim pass |
 
-- Spawn background when the host supports resume/poll so the Orchestrator can
+- Spawn background when the host supports resume/poll so the TO can
   feed follow-ups into the **same** worker.
 - Parallel sticky lanes are fine if they stay on-topic and merge through the
-  Orchestrator brief.
+  TO brief.
 
-**Durable memory** is optional. When Main sets `persist: durable`, **Orchestrator
+**Durable memory** is optional. When Main sets `persist: durable`, **TO
 is the sole agent writer**. Main never writes; TTs are read-only. See
 [durable-memory.md](durable-memory.md).
 
 ## Pattern library (atoms)
 
 ### `refine-loop`
-- **Roles**: Generator produces from the **Orchestrator brief** only; Critiquer
+- **Roles**: Generator produces from the **TO brief** only; Critiquer
   audits against a checklist or tests.
-- **Lifecycle**: Sticky Gen + Critiquer until Orchestrator releases.
+- **Lifecycle**: Sticky Gen + Critiquer until TO releases.
 - **Hard exit gates**: see [evidence-gates.md](evidence-gates.md).
 
 ### `research-swarm`
 - **Roles**: Scouts with mutually exclusive sub-queries.
 - **Lifecycle**: Sticky per scout lens.
-- **Merge**: Orchestrator writes one brief — [to-brief-template.md](to-brief-template.md).
+- **Merge**: TO writes one brief — [to-brief-template.md](to-brief-template.md).
 
 ### `debate`
 - **Roles**: Additor / Reductor / Consul.
@@ -80,11 +80,11 @@ is the sole agent writer**. Main never writes; TTs are read-only. See
 ### `plane-audit`
 - **Roles**: Independent planes (e.g. security ∥ performance ∥ UX).
 - **Lifecycle**: Sticky per plane TT.
-- **Merge**: Orchestrator requires all planes clear with evidence.
+- **Merge**: TO requires all planes clear with evidence.
 
 ### `verify-claims`
 - **Roles**: Draft → extract claims → blinded verifiers → reconciler.
-- **Merge**: Orchestrator owns reconciled brief before any build step.
+- **Merge**: TO owns reconciled brief before any build step.
 
 ### Internal-only paradigms (telemetry tags)
 
@@ -95,10 +95,10 @@ is the sole agent writer**. Main never writes; TTs are read-only. See
 | `debate` / `consul` | `debate` |
 | `planes` | `plane-audit` |
 | `cove` | `verify-claims` |
-| `got` / `moa` / `adversarial` | Rare; Orchestrator only |
+| `got` / `moa` / `adversarial` | Rare; TO only |
 
 ## Durable memory (optional flag, not a topology)
 
 - **`persist: none`** (default) or **`persist: durable`** (host may alias).
-- **Writer**: Orchestrator only. TTs: read-only if allowlisted. Main does not write.
+- **Writer**: TO only. TTs: read-only if allowlisted. Main does not write.
 - Details: [durable-memory.md](durable-memory.md).

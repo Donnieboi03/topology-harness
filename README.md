@@ -10,18 +10,18 @@ lanes, and evidence gates.
 | Layer | Role |
 | :--- | :--- |
 | **Host runtime** | Chat, spawn/resume, tools, sessions |
-| **This harness** | Policy / graph: Main → Orchestrator → TT |
+| **This harness** | Policy / graph: Main → TO → TT |
 
 ## Glossary
 
 | Term | Meaning |
 | :--- | :--- |
 | **Main** | Talking agent; gates work; handles chit-chat |
-| **Orchestrator** | One per topic; mid-tier composer of compounds. Host spawn role is often `role=orchestrator` — that is the same idea, not a fourth role. |
-| **TT** | **Topic Topology** worker under an Orchestrator (scout, plane, generator, …). Not the product name. |
+| **TO** | **Topic Orchestrator** — one per topic; mid-tier composer of compounds. Host spawn `role=orchestrator` is the same role (API name), not a fourth role. Prefer the acronym **TO** in prose once expanded. |
+| **TT** | **Topic Topology** worker under a TO (scout, plane, generator, …). Not the product name. |
 | **Compound Topologies** | The product / doctrine name for this control plane |
-| **`to_only`** | Intent action: resume the sticky Orchestrator only (no TT re-fan) |
-| **`topic_owner` / `leaf`** | Accepted **API aliases** for Orchestrator / TT — prefer Orchestrator / TT in docs and new code |
+| **`to_only`** | Intent action: resume the sticky TO only (no TT re-fan) |
+| **`topic_owner` / `leaf`** | Accepted **API aliases** for TO / TT — prefer **TO** / **TT** in docs and new code |
 
 ## Install
 

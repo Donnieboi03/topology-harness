@@ -7,7 +7,7 @@ base_url: https://openrouter.ai/api/v1
 # Primary models by role (example OpenRouter ids)
 roles:
   main: google/gemini-3-flash-preview
-  topic_owner: google/gemini-3-flash-preview   # Orchestrator
+  topic_owner: google/gemini-3-flash-preview   # Topic Orchestrator (TO)
   generator: google/gemini-3.5-flash
   critiquer: google/gemini-3.5-flash
   scout: google/gemini-3-flash-preview         # TT research lanes
