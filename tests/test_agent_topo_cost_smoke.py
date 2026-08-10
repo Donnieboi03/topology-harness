@@ -60,11 +60,14 @@ def test_scope_card_and_urn() -> None:
 
 
 def test_vault_policy_and_evidence() -> None:
-    assert_can_write("topic_owner")
+    assert_can_write("orchestrator")
+    assert_can_write("topic_owner")  # alias
     with pytest.raises(PermissionError):
         assert_can_write("main")
     with pytest.raises(PermissionError):
-        assert_can_write("leaf")
+        assert_can_write("tt")
+    with pytest.raises(PermissionError):
+        assert_can_write("leaf")  # alias → tt
     assert CODE_GATES == ("tests", "typecheck", "lint_syntax", "docs")
     assert all_gates_passed({"tests": True, "typecheck": True})
     assert missing_gates({"tests": True}) == ["typecheck", "lint_syntax", "docs"]
@@ -81,10 +84,13 @@ def test_critical_payload() -> None:
     assert payload["channel"] == "host"
     assert payload["command"] == "rm -rf /tmp/x"
     assert payload["status"] == "pending"
-    from agent_topo_harness.escalate import for_hermes_telegram
+    from agent_topo_harness.escalate import for_host_telegram, for_hermes_telegram
 
-    tg = for_hermes_telegram("rm -rf /tmp/x", "cleanup", "topic-1")
+    tg = for_host_telegram("rm -rf /tmp/x", "cleanup", "topic-1")
     assert tg["channel"] == "telegram"
+    assert for_hermes_telegram("rm -rf /tmp/x", "cleanup", "topic-1")["channel"] == (
+        "telegram"
+    )
 
 
 def test_docs_templates_live_in_harness() -> None:

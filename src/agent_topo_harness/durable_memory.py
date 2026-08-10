@@ -1,16 +1,17 @@
-"""TO-only durable-memory write gate (host-agnostic).
+"""Orchestrator-only durable-memory write gate (host-agnostic).
 
-Optional capability: when ``persist`` is enabled, only ``topic_owner`` may
-write the host's durable store. Vault/Obsidian is a Hermes/Virgil mapping —
-see the host's ``docs/compound-topologies/vault-obsidian.md`` (Virgil).
+Optional capability: when ``persist`` is enabled, only the Orchestrator
+(``topic_owner`` / ``orchestrator`` role) may write the host's durable store.
+Host-specific backends (files, vaults, DBs) are configured by the host — not
+by this harness.
 """
 from __future__ import annotations
 
 from typing import Any, Callable, Literal, TypeVar
 
-Role = Literal["main", "topic_owner", "leaf"]
+Role = Literal["main", "orchestrator", "tt"]
 
-ALLOWED_WRITE_ROLE: Role = "topic_owner"
+ALLOWED_WRITE_ROLE = "orchestrator"
 
 T = TypeVar("T")
 
@@ -18,20 +19,26 @@ T = TypeVar("T")
 def normalize_role(role: str) -> str:
     normalized = (role or "").strip().lower().replace("-", "_").replace(" ", "_")
     aliases = {
-        "to": "topic_owner",
-        "topicowner": "topic_owner",
-        "owner": "topic_owner",
+        "to": "orchestrator",
+        "topic_owner": "orchestrator",
+        "topicowner": "orchestrator",
+        "owner": "orchestrator",
+        "orchestrator": "orchestrator",
+        "leaf": "tt",
+        "tt": "tt",
+        "topic_topology": "tt",
     }
     return aliases.get(normalized, normalized)
 
 
 def assert_can_write(role: str) -> None:
-    """Raise PermissionError unless ``role`` is topic_owner."""
+    """Raise PermissionError unless ``role`` is Orchestrator."""
     normalized = normalize_role(role)
     if normalized != ALLOWED_WRITE_ROLE:
         raise PermissionError(
             f"durable-memory write forbidden for role={role!r}; "
-            f"only {ALLOWED_WRITE_ROLE!r} may write (Main/leaves never)"
+            f"only Orchestrator ({ALLOWED_WRITE_ROLE!r}) may write "
+            f"(Main/TT never)"
         )
 
 

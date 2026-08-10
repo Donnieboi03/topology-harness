@@ -1,4 +1,4 @@
-"""Main → Topic Owner scope + tooling card builder."""
+"""Main → Orchestrator scope + tooling card builder."""
 from __future__ import annotations
 
 from typing import Any, Iterable, Sequence

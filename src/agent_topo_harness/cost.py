@@ -27,7 +27,7 @@ P_IN = P_IN_PER_M / 1_000_000
 P_OUT = P_OUT_PER_M / 1_000_000
 P_CACHE = P_CACHE_PER_M / 1_000_000
 
-# ── Skill matrix (Virgil cost-analysis.md defaults) ──────────────────────────
+# ── Skill matrix (default Flash-class estimates for synthetic smoke) ─────────
 
 SKILL_MATRIX_PRICING: dict[str, dict[str, float]] = {
     "gemini-3.5-flash": {
@@ -185,7 +185,7 @@ def cost_trivial_main_only(
     U: float = 400,
     rates: SyntheticRates = DEFAULT_RATES,
 ) -> float:
-    """Cheap Main-in-chat path for a trivial job (no Topic Owner)."""
+    """Cheap Main-in-chat path for a trivial job (no Orchestrator)."""
     p_in, p_out, p_c = rates.p_in, rates.p_out, rates.p_cache
     hist = _usd(C0, p_in) + _usd(max(T - 1, 0) * C0, p_c)
     return hist + _usd(T * (S + P), p_in) + _usd(T * U, p_out)
@@ -218,10 +218,22 @@ def cost_forced_topic_owner_trivial(
 
 
 def get_db_path() -> Path:
-    override = os.environ.get("VIRGIL_HERMES_STATE_DB")
+    """Resolve host session DB for tree rollups.
+
+    Set ``AGENT_TOPO_STATE_DB`` (or legacy ``VIRGIL_HERMES_STATE_DB``) to the
+    host's SQLite path. No default home path is baked into the package.
+    """
+    override = (
+        os.environ.get("AGENT_TOPO_STATE_DB")
+        or os.environ.get("VIRGIL_HERMES_STATE_DB")
+        or os.environ.get("HOST_SESSION_DB")
+    )
     if override:
         return Path(override)
-    return Path("/Users/donnieb/.hermes/profiles/virgil-executor/state.db")
+    raise FileNotFoundError(
+        "Set AGENT_TOPO_STATE_DB to your host session database path "
+        "(no default path is shipped in agent-topo-harness)."
+    )
 
 
 def analyze_session_tree(
@@ -230,8 +242,11 @@ def analyze_session_tree(
     db_path: Path | str | None = None,
     pricing: dict[str, dict[str, float]] | None = None,
 ) -> dict[str, Any]:
-    """Recursively roll up token/cost from a parent session id in Hermes state.db."""
-    path = Path(db_path) if db_path is not None else get_db_path()
+    """Recursively roll up token/cost from a parent session id in a host DB."""
+    try:
+        path = Path(db_path) if db_path is not None else get_db_path()
+    except FileNotFoundError as exc:
+        return {"error": str(exc)}
     price_table = pricing or SKILL_MATRIX_PRICING
 
     if not path.exists():

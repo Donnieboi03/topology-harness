@@ -1,95 +1,84 @@
 ---
 name: agent-topo-harness
-description: "Compound Topologies control plane — Main → flat Topic Owners → compounds of atoms. Host-agnostic; optional durable memory + critical human channel via host mappings."
-version: 0.2.0
+description: >-
+  Compound Topologies control plane: Main gates Orchestrators; one topic per
+  Orchestrator; TTs (Topic Topology workers) under compounds; sticky lanes;
+  evidence gates; intent routing; TT stubs. Use when designing or enforcing
+  multi-agent topology policy on any host that can spawn nested workers.
 ---
 
-# agent-topo-harness
+# Compound Topologies (agent-topo-harness)
 
-Control plane for **Compound Topologies**: baseline pattern **atoms** composed into **compounds** by Topic Owners.
+Portable **orchestration policy** for multi-agent systems.
 
-| Label | Meaning |
-| :--- | :--- |
-| **A** | Monolithic chat agent (one transcript, no sub-agents) |
-| **B** | Compound Topologies (Main → flat Topic Owners → pattern leaves) |
+A host runtime provides chat, spawn/resume, tools, and sessions. This harness
+adds: Main vs Orchestrator vs TT, one-topic isolation, compounds, sticky lanes,
+evidence gates. Without it, a host can still spawn workers — just without those
+rules (fat children, mixed topics, tool thrash).
 
-**Agent Topologies** = catalog brand. Plugs into **any** agent host that can spawn nested workers. Install / host wiring: [install.md](install.md).
+**Control-plane pieces:** [sticky registry](docs/sticky-registry.md),
+[intent routing](docs/intent-routing.md) (follow-ups default `to_only`),
+[TT stubs](docs/tt-stubs.md) → Orchestrator brief. Hosts bind `session_id` and
+spawn/resume.
 
-### Cost / when to use a TO (measured truth)
+Classify-only intent helper role: ``roles.router`` in [config/models.yaml](config/models.yaml)
+(override with host env). Prefer **in-band** route emission on Main for live
+turns; separate classify calls are for measurement only.
 
-Main **gates** topology: stay in-chat for chit-chat and trivial asks; open a Topic Owner only for non-trivial, multi-step, or multi-source work (and **one TO per distinct topic**).
+## Roles
 
-Live A/B smokes do **not** support “B is always cheaper.” Fair one-shot often has **A ≤ B** on $ and wall-clock (graph overhead). B’s real wins: **cross-topic isolation**, **scoped tools**, **sticky thin leaves** when fat work would multiply inside A, and **parallel leaves** for latency. Details: [docs/cost-analysis.md](docs/cost-analysis.md).
-
-## Core (required)
-
-1. **Main** — talking agent; **decides** Main-only vs TO; routes non-trivial work; scope + tooling card; optional `composition:` hint; mediates critical approvals via the **host** human channel. Does not run heavy paradigms in-chat.
-2. **Topic Owner** — builds compounds from atoms; owns the brief; nest-delegates leaves only (depth 1). Sole agent writer of durable memory **when** persist is enabled. Context is **topic-local** (no other topics’ junk).
-3. **Leaves** — job-sized context; no nest-delegate; no durable writes.
-
-| Caller | May spawn | Must not |
-| :--- | :--- | :--- |
-| **Main** | Flat Topic Owner(s); or one trivial leaf | Nested TOs; heavy work in-chat; TO for pure chit-chat |
-| **Topic Owner** | Pattern leaves / atom mix | Another TO; raw scout dumps to Main |
-| **Leaf** | Nothing | Nest-delegate |
-
-**Trivial:** Main in-chat for `ls` / one-shot Q&A; larger single job → one leaf. Never a TO.
-
-Compounds are the default unit of work ([docs/compounds.md](docs/compounds.md)). Evidence gates on refine/critique ([docs/evidence-gates.md](docs/evidence-gates.md)).
-
-## Optional capabilities (host mappings)
-
-| Capability | Core contract | Not assumed |
-| :--- | :--- | :--- |
-| **Durable memory** | [docs/durable-memory.md](docs/durable-memory.md) — TO-only writes when `persist: durable` | Vault / Obsidian / any specific store |
-| **Critical approval** | [docs/critical-escalation.md](docs/critical-escalation.md) — Leaf→TO→Main→**host channel** | Telegram specifically |
-| **Spawn primitive** | Nest TO→leaves at depth 1 | Hermes `delegate_task` |
-| **Model routing** | Preference + allowlist ([config/models.yaml](config/models.yaml)) | OpenRouter |
-
-Hermes/Virgil mappings are **host-owned** (Virgil: `docs/compound-topologies/`, nest patch, hooks/prefill). See [install.md](install.md).
-
-## Docs
-
-| Doc | Purpose |
-| :--- | :--- |
-| [docs/agent-topologies.md](docs/agent-topologies.md) | Atom catalog |
-| [docs/compounds.md](docs/compounds.md) | Named compounds |
-| [docs/scope-and-tooling-card.md](docs/scope-and-tooling-card.md) | Main→TO envelope |
-| [docs/to-brief-template.md](docs/to-brief-template.md) | TO brief schema |
-| [docs/evidence-gates.md](docs/evidence-gates.md) | Critiquer exits |
-| [docs/critical-escalation.md](docs/critical-escalation.md) | Critical ladder (portable) |
-| [docs/durable-memory.md](docs/durable-memory.md) | Optional persist policy |
-| [docs/cost-analysis.md](docs/cost-analysis.md) | Cost truth (measured A/B) + smoke |
-| [docs/graph_telemetry.md](docs/graph_telemetry.md) | Telemetry fields |
-
-## Compounds (prefer)
-
-| Compound | Wiring |
-| :--- | :--- |
-| `debug-compound` | `plane-audit` → TO brief → `refine-loop` |
-| `research-build` | `research-swarm` → TO brief → `refine-loop` |
-| `decide-then-audit` | `debate` → `plane-audit` → optional `refine-loop` |
-| `verify-then-build` | `verify-claims` → TO brief → `refine-loop` |
-
-Keep `debate` ≠ `plane-audit`.
-
-## Python helpers
-
-```bash
-cd ~/Developer/agent-topo-harness
-uv run python -m agent_topo_harness.cost_smoke
+```
+Main
+  └── Orchestrator(s)     ← flat only (no Orchestrator→Orchestrator)
+        └── TT workers    ← compounds / atoms; no further topology spawn
 ```
 
-Modules: `compounds`, `scope`, `evidence`, `escalate`, `durable_memory` (`vault_policy` alias), `cost`, `telemetry`, `templates`, `models`.
+| Role | Does | Must not |
+| :--- | :--- | :--- |
+| **Main** | Flat Orchestrator(s); or one trivial TT | Nested Orchestrators; heavy work in-chat; Orchestrator for pure chit-chat |
+| **Orchestrator** | Compose compounds; merge TT stubs; user-facing voice for the topic | Spawn another Orchestrator; mix unrelated topics |
+| **TT** | One lens / atom job; return stubs | Spawn; talk to the user as the product voice |
 
-## Verification checklist
+**Trivial:** Main in-chat for tiny Q&A; larger single job → one TT. Never an Orchestrator for pure chit-chat.
 
-- [ ] Main routes only (or trivial leaf); no TO→TO
-- [ ] Scope + tooling card (+ optional composition) to each TO
-- [ ] Work runs as a compound (or justified novel composition)
-- [ ] TO owns brief before producer; evidence exits enforced
-- [ ] Critical path uses host human-approval channel
-- [ ] If persist enabled → TO-only durable writes (host maps the store)
-- [ ] Models subset of `config/models.yaml` allowlist when using harness routing
-- [ ] Main gated TO correctly (no TO for pure chit-chat; one TO per distinct topic)
-- [ ] Host glue applied if using Hermes (Virgil `apply_*.sh`); gateway restarted
+See [README.md](README.md) glossary: Orchestrator ≠ a fourth role next to `role=orchestrator`; TT ≠ the product name Compound Topologies.
+
+## Compounds
+
+Named recipes under an Orchestrator — see [docs/compounds.md](docs/compounds.md).
+Main may hint `composition:`; Orchestrator owns final wiring.
+
+## Cost
+
+Do **not** promise the graph is always cheaper than monolith chat. Measure on
+your host. Value is isolation, scoped tools, sticky resume, evidence gates.
+
+## Host glue
+
+Host-owned: nest depth/role, hooks, prefill, durable-store mappings. See
+[install.md](install.md). This repo stays host-agnostic.
+
+## Doc index
+
+| Doc | Topic |
+| :--- | :--- |
+| [docs/agent-topologies.md](docs/agent-topologies.md) | Atoms + control plane |
+| [docs/compounds.md](docs/compounds.md) | Named compounds |
+| [docs/sticky-registry.md](docs/sticky-registry.md) | Sticky Orchestrator/TT registry |
+| [docs/intent-routing.md](docs/intent-routing.md) | Route actions |
+| [docs/tt-stubs.md](docs/tt-stubs.md) | TT stub → Orchestrator brief |
+| [docs/cost-analysis.md](docs/cost-analysis.md) | Cost protocol |
+| [docs/scope-and-tooling-card.md](docs/scope-and-tooling-card.md) | Main→Orchestrator envelope |
+| [docs/evidence-gates.md](docs/evidence-gates.md) | Hard exits |
+| [docs/critical-escalation.md](docs/critical-escalation.md) | TT→Orchestrator→Main→host |
+| [docs/durable-memory.md](docs/durable-memory.md) | Optional persist |
+
+## Checklist
+
+- [ ] Main routes only (or trivial TT); no Orchestrator→Orchestrator
+- [ ] One Orchestrator = one topic
+- [ ] TTs return stubs; Orchestrator merges
+- [ ] Follow-ups prefer `to_only` over full re-fan
+- [ ] Sticky resume when host supports session ids
+- [ ] Evidence gates on refine / verify compounds
+- [ ] Host glue applied; runtime restarted if required

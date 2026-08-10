@@ -1,6 +1,6 @@
 # Evidence gates
 
-Critiquer / plane / verifier **exit criteria** are evidence, not opinions. Fail → another producer round (or TO revises the brief). Soft “looks good” is not a pass.
+Critiquer / plane / verifier **exit criteria** are evidence, not opinions. Fail → another producer round (or Orchestrator revises the brief). Soft “looks good” is not a pass.
 
 ## Code / docs matrix (refine-loop default)
 
@@ -17,7 +17,7 @@ Skip a row only if Main’s scope card explicitly marks it N/A (e.g. pure prose 
 
 | Atom | Evidence stand-ins |
 | :--- | :--- |
-| `research-swarm` | Citations, primary sources, contradicted claims called out; no unsourced assertions in the TO brief |
+| `research-swarm` | Citations, primary sources, contradicted claims called out; no unsourced assertions in the Orchestrator brief |
 | `debate` | Consul decision records both sides + explicit tie-break rule applied |
 | `plane-audit` | Each plane returns checklist items with commands/logs/screenshots as applicable; all required planes clear |
 | `verify-claims` | Each claim: verified / disputed / unknown with verifier notes; reconciler output only |

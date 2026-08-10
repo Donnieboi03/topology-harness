@@ -1,44 +1,38 @@
-# Compound Topologies / agent-topo-harness — model routing
-# Preference + allowlist for OpenRouter (Gemini rate-limit escape).
-# Host applies into Hermes (Virgil: ./scripts/apply_agent_topo_harness.sh).
+# Compound Topologies / agent-topo-harness — example model routing
+# Host copies or generates equivalent config. Do not commit API keys.
 
 provider: openrouter
 base_url: https://openrouter.ai/api/v1
 
-# Primary models by role (OpenRouter ids)
-# Cheap default for talk / TO / scouts; 3.5 only for Gen + Critiquer (pass
-# tasks[].model explicitly — Hermes delegation.model is the cheap default).
+# Primary models by role (example OpenRouter ids)
 roles:
   main: google/gemini-3-flash-preview
-  topic_owner: google/gemini-3-flash-preview
+  topic_owner: google/gemini-3-flash-preview   # Orchestrator
   generator: google/gemini-3.5-flash
   critiquer: google/gemini-3.5-flash
-  scout: google/gemini-3-flash-preview
+  scout: google/gemini-3-flash-preview         # TT research lanes
+  router: google/gemini-2.5-flash-lite         # classify-only (optional)
 
-# Hermes Main + default delegate (every child unless tasks[].model override)
 preference:
   model: google/gemini-3-flash-preview
   delegation_model: google/gemini-3-flash-preview
 
-# Ordered failover on 429 / billing / unavailable (subset of allowlist).
-# Gemini family step-down first (cost preference during downtime):
-#   3-flash-preview → 2.5-flash → cross-vendor
-# Hermes skips chain entries that match the current model.
 fallbacks:
   - google/gemini-2.5-flash
   - anthropic/claude-3.5-haiku
   - openai/gpt-4.1-mini
 
-# Hard bound — apply script / models.assert_allowed reject anything else
 allowlist:
   - google/gemini-3-flash-preview
   - google/gemini-3.5-flash
   - google/gemini-2.5-flash
+  - google/gemini-2.5-flash-lite
+  - amazon/nova-micro-v1
+  - qwen/qwen-2.5-7b-instruct
   - anthropic/claude-3.5-haiku
   - openai/gpt-4.1-mini
 
-# Optional direct-Gemini fallback if OpenRouter fails entirely (needs GOOGLE_API_KEY)
+# Optional non-OpenRouter escape (host may ignore)
 secondary_provider:
   provider: gemini
   model: gemini-2.5-flash
-  base_url: https://generativelanguage.googleapis.com/v1beta

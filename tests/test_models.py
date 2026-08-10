@@ -1,4 +1,4 @@
-"""Models allowlist + Hermes fragment."""
+"""Models allowlist + host config fragment."""
 from __future__ import annotations
 
 import pytest
@@ -6,6 +6,7 @@ import pytest
 from agent_topo_harness.models import (
     assert_allowed,
     hermes_model_block,
+    host_model_block,
     load_models_config,
     role_model,
 )
@@ -27,10 +28,12 @@ def test_assert_allowed_rejects_unknown():
 def test_role_model_aliases():
     assert role_model("main") == "google/gemini-3-flash-preview"
     assert role_model("TO") == role_model("topic_owner")
+    assert role_model("orchestrator") == role_model("topic_owner")
 
 
-def test_hermes_model_block_shape():
-    block = hermes_model_block()
+def test_host_model_block_shape():
+    block = host_model_block()
+    assert hermes_model_block() == block  # alias
     assert block["model"]["provider"] == "openrouter"
     assert block["model"]["default"] == "google/gemini-3-flash-preview"
     assert block["delegation"]["model"] == "google/gemini-3-flash-preview"

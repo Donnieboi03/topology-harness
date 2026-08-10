@@ -1,85 +1,68 @@
 # Cost Analysis Protocol
 
-Every multi-agent topology run must be analyzed for aggregate token spend (input **and** output). Cost helpers live in this harness (`src/agent_topo_harness`).
+Every multi-agent topology run should be analyzed for aggregate token spend
+(input **and** output). Cost helpers live in this harness (`src/agent_topo_harness`).
 
-## What we actually claim (live A/B truth)
+## What we claim
 
-Do **not** promise “Compound Topologies (B) is always cheaper than monolith chat (A).”
+Do **not** promise Compound Topologies (B) is always cheaper than monolith chat (A).
 
-Measured with the same model, matrix pricing (in+out), and fair setups:
-
-| Shape | Result |
+| Shape | Expected stance |
 | :--- | :--- |
-| **Fair one user-turn + one retry** (synthetic) | Often **`cost_A ≤ cost_B`** — graph overhead (Main route + TO/leaves) beats a single fat answer call |
-| **Same fat on Main, one-shot research/coding** | **A** usually wins **$** and **wall-clock** when B is sequential |
-| **Mixed session** (Main-only chat, then different topics) | **A ≈ B** on $ when Main still re-reads the full transcript every route; B’s **TO prompts stay thin** (isolation works) |
-| **Forced TO on trivial chat** | **Main-only cheaper** — do not spin a TO for `ls` / one-liners |
-| **Parallel scouts/leaves** | Improves **latency**, not $/token (you still pay every leaf) |
+| Fair **one user-turn + one retry** (synthetic `cost_smoke`) | Often **A ≤ B** — graph overhead |
+| Forced Orchestrator on trivial chat | **Main-only cheaper** — never open an Orchestrator for one-liners |
+| Parallel TTs | Improves **latency** vs sequential TTs, **not** $/token |
 
-**Why agent-topo still earns its keep**
+**What B still buys (even when $ is higher)**
 
-1. **Main gates the TO** — chit-chat and trivial work stay on Main; only non-trivial / multi-step / multi-source work opens a Topic Owner.
-2. **Cross-topic isolation** — coding TO must not carry housing/event junk (architecture guarantee; monolith only hopes the model ignores noise).
-3. **Scoped tools / blast radius** — thin leaves with explicit toolsets; avoid MCP/vault thrash on every child.
-4. **When A’s fat work multiplies** — many tool/think rounds or retries *inside* the growing monolith; B keeps that work on thin sticky leaves.
-5. **Parallel leaves** — deep research / multi-plane audit wall-clock when the host fans out.
+1. **Main gates the Orchestrator** — chit-chat stays on Main.
+2. **Cross-topic isolation** — unrelated topics do not share one fat transcript.
+3. **Scoped tools / blast radius** — explicit toolsets on TTs.
+4. **Sticky session pool** — [`StickyRegistry`](sticky-registry.md); follow-ups use [intent routing](intent-routing.md) (`to_only` default). TTs return [stubs](tt-stubs.md).
+5. **When fat tool work multiplies inside A** — isolation pays when tools thrash.
 
-**Dominant tax:** If Main re-ingests the full archive on every route, **B ≈ A_main + TO/leaf overhead**. Isolation alone does not erase the Main tax.
+**Dominant tax:** If Main re-ingests the full archive every turn, **B ≈ A_main + graph overhead**. Isolation thins Orchestrator/TTs; it does not erase Main’s transcript tax.
 
-## 1. Automated Analysis
+## Control plane vs host
 
-### Live session tree
+| | **Host runtime** | **Compound Topologies (this harness)** |
+| :--- | :--- | :--- |
+| What it is | Chat, spawn, tools, sessions | Who may spawn whom, topic isolation, compounds, sticky, gates |
+| Spawning | Can spawn workers | Says *when* and *as what* (Main vs Orchestrator vs TT) |
+| Without this layer | Flat “Main delegates whatever” | Easy to get fat children, Orchestrator nesting, tool thrash |
 
-From the Virgil repo (wrapper):
+## Automated analysis
+
+### Session tree (host DB)
 
 ```bash
-uv run python scripts/graph_analysis/session_cost.py <parent_session_id>
+export AGENT_TOPO_STATE_DB=/path/to/host/sessions.db
+# then call analyze_session_tree(parent_id) from Python
 ```
-
-Rollup: `agent_topo_harness.cost.analyze_session_tree`.
 
 ### Synthetic A/B smoke
 
 ```bash
-# harness checkout
 uv run python -m agent_topo_harness.cost_smoke
-# or from Virgil
-uv run python scripts/agent_topo_cost_smoke.py
-uv run pytest -q
 ```
 
-Fair baseline: **one user-turn + one retry** for both A and B (same knobs). Asserts **Main-only &lt; forced TO** on trivial work. Does **not** assert `cost_B < cost_A`.
+Asserts Main-only &lt; forced Orchestrator on trivial work. Does **not** assert `cost_B < cost_A`.
 
-### Live A/B smoke (Virgil)
+## Pricing — one table per report
 
-```bash
-uv run python scripts/agent_topo_ab_replay_half.py
-```
+Pick a single $/1M table per comparison. Synthetic smoke uses the harness Pro-tier
+constants in `cost.py`. Host A/B scripts may use a different matrix — **do not mix**.
 
-Replays the **first half** of a real Hermes mega-session user turns (chronological ping/pong). **A and B get the identical user texts and turn count.** A = monolith; B = Main-gated topic-local TOs. Reports cost (in+out matrix), wall-clock, and blind performance.
+Sticky resume ≠ provider prompt-cache hits.
 
+## Reporting
 
-## 2. Pricing Matrix (Flash-Only)
+On completion of a multi-worker task, report:
 
-*Prices per 1M tokens. Prefer live provider rates when billing; this matrix is the default for Flash-tier reports.*
-
-| Model | Input | Output |
-| :--- | :--- | :--- |
-| `gemini-3.5-flash` | $0.075 | $0.30 |
-| `gemini-3-flash-preview` | $0.075 | $0.30 |
-| `gemini-2.5-flash` | $0.10 | $0.40 |
-
-Virgil live smokes may use `scripts/llm_pricing.py` (often $0.15 / $0.60 for OpenRouter ids) — pick **one** table per report.
-
-Assume **context caching** helps long Main prefixes when the host enables it. Prefer **sticky leaves** under a TO (reuse scout/Gen/Critiquer sessions) so leaves avoid cold rediscovery — that is reuse hygiene, not a promise vs monolith $.
-
-## 3. Reporting
-
-On completion of a background task (>2 subagents), report:
-
-- **Total topology cost** (input + output)
-- **Token split** (prompt vs completion)
-- **Top token consumer** (Main vs TO vs which leaf)
-- **Control depth** (Main → Topic Owner → leaves)
-- **Composition** (compound id) when available from telemetry
-- Whether Main **should have stayed in-chat** (trivial) vs opened a TO
+- Total topology cost (input + output USD)
+- Token split (prompt vs completion)
+- Top token consumer (Main vs Orchestrator vs which TT)
+- Control depth (Main → Orchestrator → TTs)
+- Composition (compound id) when available
+- Whether Main should have stayed in-chat vs opened an Orchestrator
+- Sticky or cold spawn

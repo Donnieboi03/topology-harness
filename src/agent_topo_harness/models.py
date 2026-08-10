@@ -65,15 +65,27 @@ def role_model(role: str, *, path: Path | None = None) -> str:
     cfg = load_models_config(path)
     roles = cfg.get("roles") or {}
     key = (role or "").strip().lower().replace("-", "_")
-    aliases = {"to": "topic_owner", "owner": "topic_owner", "parent": "main"}
+    aliases = {
+        "to": "topic_owner",
+        "owner": "topic_owner",
+        "orchestrator": "topic_owner",
+        "parent": "main",
+        "intent": "router",
+        "route": "router",
+        "tt": "scout",
+        "leaf": "scout",
+    }
     key = aliases.get(key, key)
     if key not in roles:
         raise KeyError(f"unknown role {role!r}; known={sorted(roles)}")
     return assert_allowed(roles[key], path=path)
 
 
-def hermes_model_block(cfg: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Fragment for Hermes config.yaml model: / delegation: / fallback_providers."""
+def host_model_block(cfg: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Example host config fragment: model / delegation / fallback_providers.
+
+    Shape matches common OpenRouter-style host YAML; hosts may remap freely.
+    """
     data = cfg or load_models_config()
     pref = data["preference"]
     provider = data.get("provider") or "openrouter"
@@ -102,3 +114,7 @@ def hermes_model_block(cfg: dict[str, Any] | None = None) -> dict[str, Any]:
         },
         "fallback_providers": fallbacks,
     }
+
+
+# Alias kept for existing host call sites
+hermes_model_block = host_model_block

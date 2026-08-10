@@ -15,7 +15,7 @@ def build_critical_approval_payload(
     *,
     topic_title: str = "",
     risk: str = "critical",
-    source_role: str = "topic_owner",
+    source_role: str = "orchestrator",
     batch_id: str | None = None,
     related_commands: Sequence[str] | None = None,
     deny_action: str = "cancel",
@@ -24,7 +24,7 @@ def build_critical_approval_payload(
 ) -> dict[str, Any]:
     """Build a dict for Main → host human-approval channel.
 
-    Path: Leaf → TO (filter/batch/veto) → Main → host channel.
+    Path: TT → Orchestrator (filter/batch/veto) → Main → host channel.
     On deny, ``deny_action`` defaults to ``cancel``.
     """
     cmd = (command or "").strip()
@@ -54,18 +54,36 @@ def build_critical_approval_payload(
     }
 
 
-def for_hermes_telegram(
+def for_host_channel(
     command: str,
     rationale: str,
     topic_id: str,
+    *,
+    channel: str = "telegram",
     **kwargs: Any,
 ) -> dict[str, Any]:
-    """Hermes adapter helper — same payload with ``channel=telegram``."""
+    """Build an approval payload for a specific host human channel."""
     kwargs.pop("channel", None)
     return build_critical_approval_payload(
         command,
         rationale,
         topic_id,
-        channel="telegram",
+        channel=channel,
         **kwargs,
     )
+
+
+def for_host_telegram(
+    command: str,
+    rationale: str,
+    topic_id: str,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Convenience: ``for_host_channel(..., channel="telegram")``."""
+    return for_host_channel(
+        command, rationale, topic_id, channel="telegram", **kwargs
+    )
+
+
+# Alias kept for existing host call sites
+for_hermes_telegram = for_host_telegram

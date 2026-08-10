@@ -8,7 +8,7 @@ _DEFAULT_DOCS = Path(__file__).resolve().parents[2] / "docs"
 
 
 def skill_refs_dir() -> Path:
-    """Backward-compatible alias for :func:`docs_dir`."""
+    """Alias for :func:`docs_dir`."""
     return docs_dir()
 
 

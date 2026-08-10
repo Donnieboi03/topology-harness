@@ -1,18 +1,21 @@
-# agent-topo-harness docs
+# Docs index
 
-Canonical Compound Topologies policy (this harness owns these files).
+Compound Topologies — portable multi-agent control plane.
 
 | Doc | Topic |
 | :--- | :--- |
-| [agent-topologies.md](agent-topologies.md) | Atom catalog |
-| [compounds.md](compounds.md) | Named compounds |
-| [scope-and-tooling-card.md](scope-and-tooling-card.md) | Main→TO envelope |
-| [to-brief-template.md](to-brief-template.md) | TO brief |
-| [evidence-gates.md](evidence-gates.md) | Critiquer exits |
-| [critical-escalation.md](critical-escalation.md) | Critical ladder (portable) |
-| [durable-memory.md](durable-memory.md) | Optional persist / TO-only writes |
-| [vault-write-policy.md](vault-write-policy.md) | Pointer → durable-memory + host Obsidian mapping |
-| [cost-analysis.md](cost-analysis.md) | Cost truth (A/B measured) + smoke |
+| [agent-topologies.md](agent-topologies.md) | Atoms + Main / Orchestrator / TT |
+| [compounds.md](compounds.md) | Named compound recipes |
+| [sticky-registry.md](sticky-registry.md) | Sticky Orchestrator / TT registry |
+| [intent-routing.md](intent-routing.md) | Route actions for Main |
+| [tt-stubs.md](tt-stubs.md) | Short TT findings → Orchestrator brief |
+| [to-brief-template.md](to-brief-template.md) | Orchestrator brief |
+| [scope-and-tooling-card.md](scope-and-tooling-card.md) | Main→Orchestrator envelope |
+| [evidence-gates.md](evidence-gates.md) | Hard exit criteria |
+| [critical-escalation.md](critical-escalation.md) | TT→Orchestrator→Main→host |
+| [durable-memory.md](durable-memory.md) | Optional persist (Orchestrator writes) |
+| [vault-write-policy.md](vault-write-policy.md) | Persist write gate (host maps backend) |
+| [cost-analysis.md](cost-analysis.md) | Cost protocol |
 | [graph_telemetry.md](graph_telemetry.md) | Telemetry fields |
 
-Host mappings: owned by the agent host (Virgil Hermes glue under that repo’s `docs/compound-topologies/`). Start from [../SKILL.md](../SKILL.md).
+Start from [../SKILL.md](../SKILL.md). Host-specific mappings stay in the host repo.

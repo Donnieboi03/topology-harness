@@ -7,3 +7,8 @@ dist/
 .DS_Store
 uv.lock
 HANDOFF.md
+.env
+.env.*
+*.db
+state/
+.hermes/

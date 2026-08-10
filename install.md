@@ -1,51 +1,43 @@
----
-name: agent-topo-install
-description: Install agent-topo-harness and wire Compound Topologies into the current agent host.
----
+# Install
 
-# Install — agent-topo-harness
-
-Prefer a durable checkout: `~/Developer/agent-topo-harness`.
+## Package
 
 ```bash
-cd ~/Developer/agent-topo-harness
+cd /path/to/agent-topo-harness
 uv sync
-uv run pytest -q
+uv run python -m agent_topo_harness.cost_smoke
+uv run pytest
 ```
 
-## Any agent host
+Python package root: `src/agent_topo_harness/`.
 
-1. Put this repo’s `SKILL.md` on the agent’s skill path (symlink is fine).
-2. Follow core spawn rules in `SKILL.md` (Main → flat Topic Owners → compounds).
-3. Optional: map durable memory + critical channel per [docs/durable-memory.md](docs/durable-memory.md) and [docs/critical-escalation.md](docs/critical-escalation.md).
-4. Prefer models from `config/models.yaml` when using harness routing.
+## Host responsibilities
 
-**Host owns all glue** (spawn patch, hooks, prefill, vault/Telegram mappings). This repo ships doctrine + portable Python helpers only.
+This harness does **not** spawn workers. The agent host must:
 
-**Not required:** Obsidian vault, Telegram, Hermes, OpenRouter — those are host choices.
+1. Enforce nest depth / role (Main → Orchestrator → TT only).
+2. Persist sticky session ids (`StickyRegistry` + host spawn/resume).
+3. Inject Main policy (prefill / system card) including intent `route:` lines.
+4. Map optional `persist: durable` to the host’s store (Orchestrator-only writes).
+5. Map critical escalation to the host’s human channel.
 
-## Hermes / Virgil (reference host)
+Use `StickyRegistry` + intent `route:` decisions + TT stubs (see docs).
 
-Glue lives in the Virgil checkout, not here:
+## Config
+
+[config/models.yaml](config/models.yaml) is an **example** role→model allowlist.
+Hosts copy or generate equivalent config; do not commit API keys here.
+
+Environment for session-tree rollups:
 
 ```bash
-cd /path/to/Virgil
-./scripts/apply_hermes_delegate_patch.sh
-./scripts/apply_agent_topo_harness.sh   # needs AGENT_TOPO_HARNESS or ~/Developer/agent-topo-harness
-# restart Hermes gateway
+export AGENT_TOPO_STATE_DB=/path/to/host/sessions.db
 ```
 
-| Piece | Host path (Virgil) | Effect |
-| :--- | :--- | :--- |
-| Nest patch | `patches/hermes/delegate_tool/` | TO can nest-delegate leaves |
-| Prefill + hooks | `prompts/compound_topologies_*`, `hooks/enforce_compound_topologies.py` | Enforce compounds + Main durable-write deny |
-| Models | harness `config/models.yaml` (applied by host script) | OpenRouter preference + allowlist |
-| `external_dirs` | harness root (+ Virgil `skills/`) | Discovers this `SKILL.md` |
+No default home-directory DB path is shipped.
 
-Mappings: Virgil `docs/compound-topologies/`.
+## Security
 
-```bash
-ln -sfn ~/Developer/agent-topo-harness /path/to/Virgil/agent-topo-harness
-```
-
-Set `OPENROUTER_API_KEY` when using OpenRouter via the apply script.
+- Do not commit `.env`, API keys, or personal session databases.
+- Prefer allowlisted models (`assert_allowed` / `roles.*`).
+- Sticky JSON holds opaque session ids only — treat host state dirs as private.

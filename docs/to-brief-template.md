@@ -1,50 +1,33 @@
-# Topic Owner brief template
+# Orchestrator brief template
 
-Copy into the TO goal / artifact store after atom findings. Generator and other producers consume **this brief only** — not raw scout/plane dumps.
+Copy into the Orchestrator goal / artifact store after TT findings. Generator
+and other producers consume **this brief only** — not raw scout/plane dumps.
 
-```markdown
-# Brief: <topic-slug>
+TT inputs should be [stubs](tt-stubs.md) (JSON / ≤5 bullets). Paste
+`stubs_to_brief_findings(...)` under Findings, then write Decisions / Open risks
+in your own voice for Main/user.
 
-## Goal
-<one paragraph: what done looks like>
+## Brief
 
-## Scope
-- In: …
-- Out: …
-- Caps: rounds=<n>, wall_clock=<…>, budget_hint=<…>
+**Topic:** …
+**Goal:** …
+**Composition:** … (compound id or freeform)
 
-## Composition
-- Hint from Main: <composition: … | none>
-- Actual wiring: <compound-id or novel sequence>
-
-## Findings (merged)
-### Sources / citations
-- …
+### Findings
+(from TT stubs)
 
 ### Decisions
-- …
+…
 
 ### Open risks
-- …
+…
 
-## Evidence checklist (exit criteria)
-- [ ] <tests / typecheck / lint / docs or atom analog>
-- [ ] …
+### Evidence checklist
+…
 
-## Tooling allowlist
-- Skills/tools permitted: …
-- Forbidden: …
+## Rules
 
-## Persist
-- persist: none | durable   # vault = host alias of durable
-- Durable notes (TO writes only if persist enabled): …
-
-## Critical watchlist
-- Commands/actions that require host human approval: …
-```
-
-**Rules**
-
-1. TO writes the brief; leaves do not publish competing briefs to Main.
-2. Refine-loop Generator input = brief + prior Generator artifact; Critiquer uses the evidence checklist.
+1. Orchestrator writes the brief; TTs do not publish competing briefs to Main.
+2. Refine-loop Generator input = brief + prior Generator artifact; Critiquer uses
+   the evidence checklist.
 3. Fail evidence → revise brief or another producer round — do not lower the bar.

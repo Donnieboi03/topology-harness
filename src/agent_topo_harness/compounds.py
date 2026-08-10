@@ -1,7 +1,7 @@
 """Named compound recipes for Compound Topologies.
 
 Wiring lists match agent-topologies/references/compounds.md.
-``to-brief`` is a Topic Owner merge step (not a leaf atom).
+``to-brief`` is an Orchestrator merge step (not a TT atom).
 """
 from __future__ import annotations
 
