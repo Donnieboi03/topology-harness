@@ -1,6 +1,6 @@
 [project]
-name = "agent-topo-harness"
-version = "0.3.3"
+name = "topology-harness"
+version = "0.4.0"
 description = "Compound Topologies control plane — host-agnostic Main → TO (Topic Orchestrator) → TT"
 requires-python = ">=3.11"
 dependencies = [
@@ -11,7 +11,8 @@ dependencies = [
 dev = ["pytest>=8.0"]
 
 [project.scripts]
-agent-topo-cost-smoke = "agent_topo_harness.cost_smoke:main"
+topology-cost-smoke = "topology_harness.cost_smoke:main"
+agent-topo-cost-smoke = "topology_harness.cost_smoke:main"
 
 [build-system]
 requires = ["setuptools>=68"]

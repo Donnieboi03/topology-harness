@@ -8,7 +8,7 @@ sticky resume, scoped tools, and evidence gates.
 | :--- | :--- |
 | `cost_A` / `cost_B` | Synthetic one-turn models |
 | `analyze_session_tree` | Roll up tokens from a host session DB |
-| `python -m agent_topo_harness.cost_smoke` | Sanity check Main-only vs forced-TO on trivia |
+| `python -m topology_harness.cost_smoke` | Sanity check Main-only vs forced-TO on trivia |
 
 Rates and DB paths are host-specific (`AGENT_TOPO_STATE_DB`). Do not mix matrices
 across hosts.

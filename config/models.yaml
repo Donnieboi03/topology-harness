@@ -1,4 +1,4 @@
-# Compound Topologies / agent-topo-harness — example model routing
+# Compound Topologies / topology-harness — example model routing
 # Host copies or generates equivalent config. Do not commit API keys.
 
 provider: openrouter

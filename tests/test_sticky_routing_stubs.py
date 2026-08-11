@@ -6,16 +6,16 @@ from pathlib import Path
 
 import pytest
 
-from agent_topo_harness.decorators import TopicNotOpenError, assert_topic_open, topo_gate
-from agent_topo_harness.routing import (
+from topology_harness.decorators import TopicNotOpenError, assert_topic_open, topo_gate
+from topology_harness.routing import (
     coerce_route_with_registry,
     parse_route_decision,
     scout_lanes_for_decision,
     should_fan_scouts,
     validate_route_decision,
 )
-from agent_topo_harness.sticky import StickyRegistry, sticky_path_for_session
-from agent_topo_harness.stubs import (
+from topology_harness.sticky import StickyRegistry, sticky_path_for_session
+from topology_harness.stubs import (
     format_tt_stub,
     parse_tt_stub,
     stubs_to_brief_findings,

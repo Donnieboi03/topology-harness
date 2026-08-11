@@ -3,19 +3,19 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from agent_topo_harness.evidence import (
+from topology_harness.evidence import (
     CODE_GATES,
     is_request_satisfied,
     missing_gates,
 )
-from agent_topo_harness.ledgers import (
+from topology_harness.ledgers import (
     ProgressLedger,
     ReasonedBool,
     StallPolicy,
     StallState,
     TaskLedger,
 )
-from agent_topo_harness.sticky import StickyRegistry, sticky_path_for_session
+from topology_harness.sticky import StickyRegistry, sticky_path_for_session
 
 
 def test_task_ledger_round_trip() -> None:

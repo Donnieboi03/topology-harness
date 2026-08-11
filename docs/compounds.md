@@ -1,7 +1,7 @@
 # Compound topologies (recipes)
 
 **Compounds** are the normal unit of work under **Compound Topologies** /
-**agent-topo-harness**. Atomics alone (`swarm` / `plane` / `cove`) are incomplete
+**topology-harness**. Atomics alone (`swarm` / `plane` / `cove`) are incomplete
 defaults; TOs wire atomics **and** non-atomic steps (especially `refine-loop`)
 under control-plane invariants. `refine-loop` is **wiring**, not an atomic URN
 paradigm — record it in `composition`.

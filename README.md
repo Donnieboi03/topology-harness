@@ -1,4 +1,6 @@
-# agent-topo-harness
+# topology-harness
+
+> **Renamed:** formerly `agent-topo-harness` / `agent_topo_harness`. Import `topology_harness` (recommended). The old package name remains a deprecated shim for one release.
 
 **Compound Topologies** — a portable **control-plane policy package** for
 multi-agent systems.
@@ -16,7 +18,7 @@ atomic, how sticky handles work, and which checks fail closed.
 └──────────────────────────┬──────────────────────────────┘
                            │ calls helpers / honors policy
 ┌──────────────────────────▼──────────────────────────────┐
-│  agent-topo-harness                                     │
+│  topology-harness                                     │
 │  Main → Topic Orchestrator (TO) → Topic Topology (TT)   │
 │  sticky · routing · atomics · evidence · telemetry      │
 └─────────────────────────────────────────────────────────┘
@@ -94,13 +96,13 @@ the host calls it.
 ## Install
 
 ```bash
-cd /path/to/agent-topo-harness
+cd /path/to/topology-harness
 uv sync
-uv run python -m agent_topo_harness.cost_smoke
+uv run python -m topology_harness.cost_smoke
 uv run pytest
 ```
 
-Python package: `src/agent_topo_harness/`.
+Python package: `src/topology_harness/`.
 
 See [install.md](install.md) for host wiring checklist.
 
@@ -111,7 +113,7 @@ See [install.md](install.md) for host wiring checklist.
 ### 1. Sticky registry
 
 ```python
-from agent_topo_harness import StickyRegistry, sticky_path_for_session
+from topology_harness import StickyRegistry, sticky_path_for_session
 
 reg = StickyRegistry(host_session_id="parent-session-id")
 to, created = reg.get_or_create_orchestrator(
@@ -127,7 +129,7 @@ reg.save(sticky_path_for_session(state_dir, "parent-session-id"))
 ### 2. Intent routing
 
 ```python
-from agent_topo_harness import (
+from topology_harness import (
     parse_route_decision,
     coerce_route_with_registry,
 )
@@ -142,7 +144,7 @@ decision = coerce_route_with_registry(
 ### 3. Spawn policy (closes Main→leaf escape hatch)
 
 ```python
-from agent_topo_harness import assert_spawn_policy
+from topology_harness import assert_spawn_policy
 
 paradigm = assert_spawn_policy(
     parent_depth=0,          # Main
@@ -171,7 +173,7 @@ paradigm = assert_spawn_policy(
 ### 4. Topic-open gate
 
 ```python
-from agent_topo_harness import topo_gate, assert_topic_open
+from topology_harness import topo_gate, assert_topic_open
 
 @topo_gate(reg)
 def spawn_tt(topic: str, lane: str) -> None:
@@ -181,7 +183,7 @@ def spawn_tt(topic: str, lane: str) -> None:
 ### 5. Topology URN
 
 ```python
-from agent_topo_harness import make_topology_urn, workflow_slug_for, resolve_paradigm
+from topology_harness import make_topology_urn, workflow_slug_for, resolve_paradigm
 
 urn = make_topology_urn(
     resolve_paradigm(atom="plane-audit"),
@@ -196,7 +198,7 @@ Sibling fields (not in the URN): `composition`, `control_plane`, `parent_run_id`
 ### 6. Durable writes
 
 ```python
-from agent_topo_harness import assert_can_write
+from topology_harness import assert_can_write
 
 assert_can_write("orchestrator")  # TO only — Main/TT raise PermissionError
 ```

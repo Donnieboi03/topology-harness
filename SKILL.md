@@ -1,5 +1,5 @@
 ---
-name: agent-topo-harness
+name: topology-harness
 description: >-
   Compound Topologies control plane: Main gates Topic Orchestrators (TOs);
   one topic per TO; TTs (Topic Topology workers) under compounds; sticky
@@ -8,7 +8,7 @@ description: >-
   workers.
 ---
 
-# Compound Topologies (agent-topo-harness)
+# Compound Topologies (topology-harness)
 
 Portable **orchestration policy** for multi-agent systems.
 

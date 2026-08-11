@@ -42,7 +42,7 @@ Survey before / while fanning TTs. Keep buckets short.
 Each field is `{reason, answer}` except speaker/instruction strings:
 
 1. `is_request_satisfied` — **only** true when evidence gates PASS
-   (`agent_topo_harness.is_request_satisfied(...)`). Never declare done on vibe.
+   (`topology_harness.is_request_satisfied(...)`). Never declare done on vibe.
 2. `is_in_loop` — repeating the same TT work / same failure without new evidence.
 3. `is_progress_being_made` — forward motion this round.
 4. `next_speaker` — sticky lane name or `to` / `main`.

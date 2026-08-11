@@ -12,7 +12,7 @@ and spawn/resume primitives.
 ## API
 
 ```python
-from agent_topo_harness.sticky import StickyRegistry, sticky_path_for_session
+from topology_harness.sticky import StickyRegistry, sticky_path_for_session
 
 reg = StickyRegistry(host_session_id="abc")
 to, created = reg.get_or_create_to("logging-logs-db")
@@ -36,7 +36,7 @@ Each handle may carry graph telemetry siblings (persisted with the registry):
 `topology_urn`, `composition`, `parent_run_id` — see [graph_telemetry.md](graph_telemetry.md).
 
 Ledger / stall / `active_lane` live in TO **`meta`** (no snapshot schema break).
-See [to-brief-template.md](to-brief-template.md) and `agent_topo_harness.ledgers`.
+See [to-brief-template.md](to-brief-template.md) and `topology_harness.ledgers`.
 
 Aliases: `get_or_create_orchestrator` / `get_or_create_leaf` still work. Load accepts
 legacy `tos` / `leaves` / `kind: topic_owner|leaf` JSON.

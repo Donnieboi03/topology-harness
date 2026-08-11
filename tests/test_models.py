@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from agent_topo_harness.models import (
+from topology_harness.models import (
     assert_allowed,
     hermes_model_block,
     host_model_block,

@@ -3,13 +3,13 @@
 ## Package
 
 ```bash
-cd /path/to/agent-topo-harness
+cd /path/to/topology-harness
 uv sync
-uv run python -m agent_topo_harness.cost_smoke
+uv run python -m topology_harness.cost_smoke
 uv run pytest
 ```
 
-Python package root: `src/agent_topo_harness/`.
+Python package root: `src/topology_harness/`.
 
 ## Host responsibilities
 

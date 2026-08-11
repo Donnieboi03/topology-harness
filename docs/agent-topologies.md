@@ -3,7 +3,7 @@
 **Atomic paradigms** (URN tags) are only three: **`swarm`**, **`plane`**,
 **`cove`**. Academic aliases and compound wiring steps are not atomics.
 
-System name: **Compound Topologies**; harness: **agent-topo-harness**.
+System name: **Compound Topologies**; harness: **topology-harness**.
 TOs compose atomics (+ optional non-atomic wiring like `refine-loop`) into
 **compounds** — see [compounds.md](compounds.md).
 

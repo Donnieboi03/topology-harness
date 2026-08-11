@@ -24,7 +24,7 @@ JSON (preferred) or one line:
 route: to_only kind: topic topic: logging-logs-db lenses: -
 ```
 
-Helpers: `agent_topo_harness.routing`. Example classify model: `roles.router` in
+Helpers: `topology_harness.routing`. Example classify model: `roles.router` in
 [config/models.yaml](../config/models.yaml).
 
 ## Integration

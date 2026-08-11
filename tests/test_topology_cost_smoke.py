@@ -1,23 +1,23 @@
-"""Unit tests for agent-topo-harness cost smoke and core helpers."""
+"""Unit tests for topology-harness cost smoke and core helpers."""
 from __future__ import annotations
 
 import pytest
 
-from agent_topo_harness.compounds import COMPOUNDS, get_compound
-from agent_topo_harness.cost import cost_A, cost_B
-from agent_topo_harness.cost_smoke import FAT_C0, run_smoke
-from agent_topo_harness.escalate import build_critical_approval_payload
-from agent_topo_harness.evidence import CODE_GATES, all_gates_passed, missing_gates
-from agent_topo_harness.scope import build_scope_card
-from agent_topo_harness.telemetry import (
+from topology_harness.compounds import COMPOUNDS, get_compound
+from topology_harness.cost import cost_A, cost_B
+from topology_harness.cost_smoke import FAT_C0, run_smoke
+from topology_harness.escalate import build_critical_approval_payload
+from topology_harness.evidence import CODE_GATES, all_gates_passed, missing_gates
+from topology_harness.scope import build_scope_card
+from topology_harness.telemetry import (
     make_topology_urn,
     paradigm_for_atom,
     resolve_paradigm,
     sibling_telemetry_fields,
     workflow_slug_for,
 )
-from agent_topo_harness.templates import docs_dir, load_template
-from agent_topo_harness.vault_policy import assert_can_write
+from topology_harness.templates import docs_dir, load_template
+from topology_harness.vault_policy import assert_can_write
 
 
 def test_cost_smoke_passes() -> None:
@@ -66,7 +66,7 @@ def test_scope_card_and_urn() -> None:
 
 
 def test_workflow_slug_and_paradigm_rules() -> None:
-    from agent_topo_harness.telemetry import NotAtomicError
+    from topology_harness.telemetry import NotAtomicError
 
     assert workflow_slug_for("auth-refresh", role="orchestrator") == (
         "auth-refresh--to"
@@ -106,7 +106,7 @@ def test_workflow_slug_and_paradigm_rules() -> None:
 
 
 def test_spawn_policy_blocks_main_leaf_for_topic_work() -> None:
-    from agent_topo_harness.spawn_policy import SpawnPolicyError, assert_spawn_policy
+    from topology_harness.spawn_policy import SpawnPolicyError, assert_spawn_policy
 
     with pytest.raises(SpawnPolicyError):
         assert_spawn_policy(
@@ -185,7 +185,7 @@ def test_critical_payload() -> None:
     assert payload["channel"] == "host"
     assert payload["command"] == "rm -rf /tmp/x"
     assert payload["status"] == "pending"
-    from agent_topo_harness.escalate import for_host_telegram, for_hermes_telegram
+    from topology_harness.escalate import for_host_telegram, for_hermes_telegram
 
     tg = for_host_telegram("rm -rf /tmp/x", "cleanup", "topic-1")
     assert tg["channel"] == "telegram"

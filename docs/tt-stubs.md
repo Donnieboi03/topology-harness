@@ -5,7 +5,7 @@ toward Main/user.
 
 ## Instruction
 
-Use `TT_STUB_INSTRUCTION` (`agent_topo_harness.stubs`) in the TT system or goal.
+Use `TT_STUB_INSTRUCTION` (`topology_harness.stubs`) in the TT system or goal.
 
 JSON shape:
 
