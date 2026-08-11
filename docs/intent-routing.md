@@ -31,9 +31,21 @@ Helpers: `agent_topo_harness.routing`. Example classify model: `roles.router` in
 
 | Layer | Role |
 | :--- | :--- |
-| Harness | Schema + parse/validate + system prompt text |
+| Harness | Schema + parse/validate + `coerce_route_with_registry` + prompt text |
 | Main (live) | Emit route before spawn/resume |
-| Host | Sticky registry + spawn/resume using the action |
+| Host | Sticky registry + spawn/resume using the **coerced** action |
 | Tests | Call router or inject `RouteDecision` — never `len(msg)` |
+
+After parse/validate, hosts should:
+
+```python
+decision = coerce_route_with_registry(
+    parse_route_decision(raw),
+    open_topics=registry.open_topics(),
+)
+```
+
+This fails-soft: if Main emits `open_topic` for an already-sticky topic, it becomes
+`to_only` (no cold re-open).
 
 See also [sticky-registry.md](sticky-registry.md), [tt-stubs.md](tt-stubs.md).

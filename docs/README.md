@@ -2,9 +2,11 @@
 
 Compound Topologies — portable multi-agent control plane.
 
+Start with the [README](../README.md) for purpose and utilization, then:
+
 | Doc | Topic |
 | :--- | :--- |
-| [agent-topologies.md](agent-topologies.md) | Atoms + Main / TO / TT |
+| [agent-topologies.md](agent-topologies.md) | Atomics + patterns + Main / TO / TT |
 | [compounds.md](compounds.md) | Named compound recipes |
 | [sticky-registry.md](sticky-registry.md) | Sticky TO / TT registry |
 | [intent-routing.md](intent-routing.md) | Route actions for Main |
@@ -15,7 +17,10 @@ Compound Topologies — portable multi-agent control plane.
 | [critical-escalation.md](critical-escalation.md) | TT→TO→Main→host |
 | [durable-memory.md](durable-memory.md) | Optional persist (TO writes) |
 | [vault-write-policy.md](vault-write-policy.md) | Persist write gate (host maps backend) |
-| [cost-analysis.md](cost-analysis.md) | Cost protocol |
-| [graph_telemetry.md](graph_telemetry.md) | Telemetry fields |
+| [cost-analysis.md](cost-analysis.md) | Optional session-tree / A-B measurement helpers (not doctrine) |
+| [graph_telemetry.md](graph_telemetry.md) | URN + sibling telemetry |
 
-Start from [../SKILL.md](../SKILL.md). Host-specific mappings stay in the host repo.
+Also: [../SKILL.md](../SKILL.md), [../install.md](../install.md).
+
+Host-specific mappings (chat surfaces, nest patches, durable backends) stay in
+the **host** repository — not here.

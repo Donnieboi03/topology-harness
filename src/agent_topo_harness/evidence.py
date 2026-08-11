@@ -82,3 +82,21 @@ def missing_gates(
         elif not bool(val):
             missing.append(gate)
     return missing
+
+
+def is_request_satisfied(
+    results: Mapping[str, Any] | Iterable[Mapping[str, Any]],
+    *,
+    required: Iterable[str] | None = None,
+) -> bool:
+    """True when evidence says the request is done: all gates passed and none missing.
+
+    For Mapping results with ``required``, also require ``missing_gates`` empty.
+    For list-of-row results, ``required`` is ignored and ``all_gates_passed`` alone
+    decides (callers should include every required gate as a row).
+    """
+    if not all_gates_passed(results):
+        return False
+    if isinstance(results, Mapping):
+        return not missing_gates(results, required=required)
+    return True

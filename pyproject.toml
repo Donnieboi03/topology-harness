@@ -1,6 +1,6 @@
 [project]
 name = "agent-topo-harness"
-version = "0.3.0"
+version = "0.3.3"
 description = "Compound Topologies control plane — host-agnostic Main → TO (Topic Orchestrator) → TT"
 requires-python = ">=3.11"
 dependencies = [

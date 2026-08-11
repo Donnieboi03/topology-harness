@@ -25,11 +25,18 @@ reg.save(sticky_path_for_session(state_dir, "abc"))
 | :--- | :--- |
 | `get_or_create_to(topic)` | Create or resume TO (Topic Orchestrator) handle |
 | `get_or_create_tt(topic, lane)` | Create or resume TT lane |
+| `set_active_lane` / `get_active_lane` | Cursor lane on TO `meta["active_lane"]` |
+| `set_task_ledger` / `get_task_ledger` | Magentic Task Ledger on TO meta |
+| `set_progress_ledger` / `get_progress_ledger` | Progress Ledger on TO meta |
+| `set_stall` / `get_stall` | Stall counters on TO meta |
 | `release_topic(topic)` | Drop TO + all TTs for that topic |
 | `save` / `load` | JSON persistence for host adapters |
 
 Each handle may carry graph telemetry siblings (persisted with the registry):
 `topology_urn`, `composition`, `parent_run_id` — see [graph_telemetry.md](graph_telemetry.md).
+
+Ledger / stall / `active_lane` live in TO **`meta`** (no snapshot schema break).
+See [to-brief-template.md](to-brief-template.md) and `agent_topo_harness.ledgers`.
 
 Aliases: `get_or_create_orchestrator` / `get_or_create_leaf` still work. Load accepts
 legacy `tos` / `leaves` / `kind: topic_owner|leaf` JSON.

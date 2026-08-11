@@ -61,21 +61,27 @@ def test_scope_card_and_urn() -> None:
     assert card["persist"] == "durable"  # vault alias
     card2 = build_scope_card(topic="t", goal="g", persist="none")
     assert card2["persist"] == "none"
-    urn = make_topology_urn("planes", "auth-refresh--implementation", ulid="01TEST")
-    assert urn == "topology:planes:auth-refresh--implementation:01TEST"
+    urn = make_topology_urn("plane", "auth-refresh--implementation", ulid="01TEST")
+    assert urn == "topology:plane:auth-refresh--implementation:01TEST"
 
 
 def test_workflow_slug_and_paradigm_rules() -> None:
-    assert workflow_slug_for("virgil-codebase-audit", role="orchestrator") == (
-        "virgil-codebase-audit--to"
+    from agent_topo_harness.telemetry import NotAtomicError
+
+    assert workflow_slug_for("auth-refresh", role="orchestrator") == (
+        "auth-refresh--to"
     )
-    assert workflow_slug_for("virgil-codebase-audit", "implementation") == (
-        "virgil-codebase-audit--implementation"
+    assert workflow_slug_for("auth-refresh", "implementation") == (
+        "auth-refresh--implementation"
     )
-    assert paradigm_for_atom("plane-audit") == "planes"
+    assert paradigm_for_atom("plane-audit") == "plane"
     assert paradigm_for_atom("research-swarm") == "swarm"
-    # Named compound / atom never collapse to leaf
-    assert resolve_paradigm(atom="refine-loop") == "refine"
+    assert paradigm_for_atom("verify-claims") == "cove"
+    # refine-loop is compound wiring, not an atomic paradigm
+    with pytest.raises(NotAtomicError):
+        paradigm_for_atom("refine-loop")
+    with pytest.raises(NotAtomicError):
+        resolve_paradigm(atom="refine-loop")
     assert resolve_paradigm(compound_id="debug-compound") == "debug-compound"
     assert resolve_paradigm(role="orchestrator") == "topic"
     assert resolve_paradigm(role="leaf") == "leaf"
@@ -96,7 +102,62 @@ def test_workflow_slug_and_paradigm_rules() -> None:
         workflow_slug_for("auth-refresh", "security"),
         ulid="01TEST",
     )
-    assert urn == "topology:planes:auth-refresh--security:01TEST"
+    assert urn == "topology:plane:auth-refresh--security:01TEST"
+
+
+def test_spawn_policy_blocks_main_leaf_for_topic_work() -> None:
+    from agent_topo_harness.spawn_policy import SpawnPolicyError, assert_spawn_policy
+
+    with pytest.raises(SpawnPolicyError):
+        assert_spawn_policy(
+            parent_depth=0,
+            role="leaf",
+            topic="agent-topo-audit",
+            paradigm="cove",
+            goal="Formalize Trinity paradigms in code and create HANDOFF.md.",
+            open_topics=["agent-topo-audit"],
+        )
+    with pytest.raises(SpawnPolicyError):
+        assert_spawn_policy(
+            parent_depth=0,
+            role="leaf",
+            topic="auth-refresh",
+            goal="Implement priority codebase fixes",
+            open_topics=[],
+        )
+    # TO path OK
+    assert (
+        assert_spawn_policy(
+            parent_depth=0,
+            role="orchestrator",
+            topic="auth-refresh",
+            goal="Implement priority codebase fixes",
+            open_topics=[],
+        )
+        == "topic"
+    )
+    # TT under TO with atomic OK
+    assert (
+        assert_spawn_policy(
+            parent_depth=1,
+            role="leaf",
+            topic="auth-refresh",
+            lane="security",
+            atom="plane-audit",
+            goal="Security plane",
+        )
+        == "plane"
+    )
+    # Trivial informal leaf OK
+    assert (
+        assert_spawn_policy(
+            parent_depth=0,
+            role="leaf",
+            goal="What time is it?",
+            allow_informal_leaf=True,
+        )
+        == "leaf"
+    )
 
 
 def test_vault_policy_and_evidence() -> None:

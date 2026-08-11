@@ -4,22 +4,28 @@
 
 Shape: `topology:<paradigm>:<workflow-slug>:<ulid>`
 
-### paradigm
+### paradigm (atomics only)
 
-From atom mapping (`paradigm_for_atom` / `resolve_paradigm`):
+Only **three** atomics get URN paradigm tags:
 
-| Atom | Paradigm |
+| Atom (user verb) | Paradigm |
 | :--- | :--- |
-| `research-swarm` | `swarm` |
-| `refine-loop` | `refine` |
-| `debate` | `debate` |
-| `plane-audit` | `planes` |
-| `verify-claims` | `cove` |
-| `to-brief` | `topic` |
+| `research-swarm` / `swarm` | `swarm` |
+| `plane-audit` / `plane` (legacy `planes`) | `plane` |
+| `verify-claims` / `cove` | `cove` |
 
-- **Never** default `leaf` for named compounds — use the compound/atom tag.
-- `leaf` only for true Main → single informal TT.
-- Topic Orchestrator (TO) → `topic` (or explicit `moa`).
+**Not atomics** (do **not** put these in the URN paradigm segment):
+
+- `refine-loop` / Gen+Critiquer — compound **wiring**; record under `composition`
+- `debate`, `to-brief`, consul roles — patterns / roles, not atomic paradigms
+
+Fail-closed helpers: `paradigm_for_atom`, `assert_atomic_paradigm`, `NotAtomicError`.
+
+Control-plane tags (not atomics):
+
+- Topic Orchestrator → `topic` (or explicit `moa`)
+- Informal Main → single TT → `leaf`
+- Named compound id may appear as paradigm when no atom is set (`resolve_paradigm(compound_id=…)`)
 
 ### workflow-slug
 
@@ -35,9 +41,10 @@ Helper: `workflow_slug_for(topic, lane, role=…)`.
 ### Examples
 
 ```
-topology:topic:virgil-codebase-audit--to:01HZ…
-topology:planes:virgil-codebase-audit--implementation:01HZ…
+topology:topic:auth-refresh--to:01HZ…
+topology:plane:auth-refresh--security:01HZ…
 topology:swarm:auth-refresh--scout-schema:01HZ…
+topology:cove:claims-pass--verifier:01HZ…
 topology:leaf:quick-fix--default:01HZ…   # informal Main→TT only
 ```
 
@@ -45,7 +52,7 @@ topology:leaf:quick-fix--default:01HZ…   # informal Main→TT only
 
 | Field | Meaning |
 | :--- | :--- |
-| `composition` | Compound id / freeform wiring (`composition_field`) |
+| `composition` | Compound id / freeform wiring (`composition_field`) — **home for refine-loop** |
 | `control_plane` | `main` \| `orchestrator` \| `tt` |
 | `topic` | Kebab topic slug |
 | `lane` | TT lane id (omit for TO) |
@@ -59,3 +66,13 @@ Helpers: `make_topology_urn`, `workflow_slug_for`, `resolve_paradigm`,
 
 Sticky handles persist `topology_urn`, `composition`, and `parent_run_id`
 alongside `session_id` (see [sticky-registry.md](sticky-registry.md)).
+
+## Fail-closed host hooks
+
+| Helper | Behavior |
+| :--- | :--- |
+| `assert_can_write(role)` | Only TO may durable-write |
+| `assert_spawn_policy(...)` | Blocks Main→leaf for topic/substantive/atomic work; returns URN paradigm |
+| `assert_topic_open` / `topo_gate(registry)` | Topic must have sticky TO |
+| `coerce_route_with_registry` | `open_topic` → `to_only` when topic already open |
+| `validate_route_decision` | Route schema only |

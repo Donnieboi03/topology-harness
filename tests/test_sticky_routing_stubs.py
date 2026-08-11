@@ -6,7 +6,9 @@ from pathlib import Path
 
 import pytest
 
+from agent_topo_harness.decorators import TopicNotOpenError, assert_topic_open, topo_gate
 from agent_topo_harness.routing import (
+    coerce_route_with_registry,
     parse_route_decision,
     scout_lanes_for_decision,
     should_fan_scouts,
@@ -140,3 +142,34 @@ def test_tt_stub_parse_and_brief() -> None:
     )
     assert "scout_gaps" in markdown and "scout_impl" in markdown
     assert "Findings (from TT stubs)" in markdown
+
+
+def test_coerce_open_topic_when_sticky() -> None:
+    d = validate_route_decision(
+        {
+            "kind": "topic",
+            "action": "open_topic",
+            "topic": "cost-audit",
+            "lenses": [],
+            "reason": "new",
+        }
+    )
+    coerced = coerce_route_with_registry(d, open_topics=["cost-audit"])
+    assert coerced.action == "to_only"
+    assert "coerced" in coerced.reason
+    same = coerce_route_with_registry(d, open_topics=[])
+    assert same.action == "open_topic"
+
+
+def test_topo_gate_requires_open_topic() -> None:
+    reg = StickyRegistry(host_session_id="gate")
+
+    @topo_gate(reg)
+    def spawn_tt(topic: str, lane: str) -> str:
+        return f"{topic}/{lane}"
+
+    with pytest.raises(TopicNotOpenError):
+        spawn_tt("missing-topic", "scout")
+    reg.get_or_create_orchestrator("missing-topic")
+    assert spawn_tt("missing-topic", "scout") == "missing-topic/scout"
+    assert_topic_open(reg, "missing-topic")

@@ -1,68 +1,14 @@
-# Cost Analysis Protocol
+# Optional measurement helpers
 
-Every multi-agent topology run should be analyzed for aggregate token spend
-(input **and** output). Cost helpers live in this harness (`src/agent_topo_harness`).
+Optional A/B and session-tree helpers for hosts that want to **measure** spend.
+Not part of Compound Topologies doctrine — control-plane value is isolation,
+sticky resume, scoped tools, and evidence gates.
 
-## What we claim
-
-Do **not** promise Compound Topologies (B) is always cheaper than monolith chat (A).
-
-| Shape | Expected stance |
+| Helper | Role |
 | :--- | :--- |
-| Fair **one user-turn + one retry** (synthetic `cost_smoke`) | Often **A ≤ B** — graph overhead |
-| Forced TO on trivial chat | **Main-only cheaper** — never open a TO for one-liners |
-| Parallel TTs | Improves **latency** vs sequential TTs, **not** $/token |
+| `cost_A` / `cost_B` | Synthetic one-turn models |
+| `analyze_session_tree` | Roll up tokens from a host session DB |
+| `python -m agent_topo_harness.cost_smoke` | Sanity check Main-only vs forced-TO on trivia |
 
-**What B still buys (even when $ is higher)**
-
-1. **Main gates the TO** — chit-chat stays on Main.
-2. **Cross-topic isolation** — unrelated topics do not share one fat transcript.
-3. **Scoped tools / blast radius** — explicit toolsets on TTs.
-4. **Sticky session pool** — [`StickyRegistry`](sticky-registry.md); follow-ups use [intent routing](intent-routing.md) (`to_only` default). TTs return [stubs](tt-stubs.md).
-5. **When fat tool work multiplies inside A** — isolation pays when tools thrash.
-
-**Dominant tax:** If Main re-ingests the full archive every turn, **B ≈ A_main + graph overhead**. Isolation thins TO/TTs; it does not erase Main’s transcript tax.
-
-## Control plane vs host
-
-| | **Host runtime** | **Compound Topologies (this harness)** |
-| :--- | :--- | :--- |
-| What it is | Chat, spawn, tools, sessions | Who may spawn whom, topic isolation, compounds, sticky, gates |
-| Spawning | Can spawn workers | Says *when* and *as what* (Main vs TO vs TT) |
-| Without this layer | Flat “Main delegates whatever” | Easy to get fat children, TO nesting, tool thrash |
-
-## Automated analysis
-
-### Session tree (host DB)
-
-```bash
-export AGENT_TOPO_STATE_DB=/path/to/host/sessions.db
-# then call analyze_session_tree(parent_id) from Python
-```
-
-### Synthetic A/B smoke
-
-```bash
-uv run python -m agent_topo_harness.cost_smoke
-```
-
-Asserts Main-only &lt; forced TO on trivial work. Does **not** assert `cost_B < cost_A`.
-
-## Pricing — one table per report
-
-Pick a single $/1M table per comparison. Synthetic smoke uses the harness Pro-tier
-constants in `cost.py`. Host A/B scripts may use a different matrix — **do not mix**.
-
-Sticky resume ≠ provider prompt-cache hits.
-
-## Reporting
-
-On completion of a multi-worker task, report:
-
-- Total topology cost (input + output USD)
-- Token split (prompt vs completion)
-- Top token consumer (Main vs TO vs which TT)
-- Control depth (Main → TO → TTs)
-- Composition (compound id) when available
-- Whether Main should have stayed in-chat vs opened a TO
-- Sticky or cold spawn
+Rates and DB paths are host-specific (`AGENT_TOPO_STATE_DB`). Do not mix matrices
+across hosts.

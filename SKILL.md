@@ -49,11 +49,6 @@ See [README.md](README.md) glossary: **TO** = Topic Orchestrator (same as host `
 Named recipes under a TO — see [docs/compounds.md](docs/compounds.md).
 Main may hint `composition:`; TO owns final wiring.
 
-## Cost
-
-Do **not** promise the graph is always cheaper than monolith chat. Measure on
-your host. Value is isolation, scoped tools, sticky resume, evidence gates.
-
 ## Host glue
 
 Host-owned: nest depth/role, hooks, prefill, durable-store mappings. See
@@ -68,18 +63,38 @@ Host-owned: nest depth/role, hooks, prefill, durable-store mappings. See
 | [docs/sticky-registry.md](docs/sticky-registry.md) | Sticky TO/TT registry |
 | [docs/intent-routing.md](docs/intent-routing.md) | Route actions |
 | [docs/tt-stubs.md](docs/tt-stubs.md) | TT stub → TO brief |
-| [docs/cost-analysis.md](docs/cost-analysis.md) | Cost protocol |
 | [docs/scope-and-tooling-card.md](docs/scope-and-tooling-card.md) | Main→TO envelope |
 | [docs/evidence-gates.md](docs/evidence-gates.md) | Hard exits |
 | [docs/critical-escalation.md](docs/critical-escalation.md) | TT→TO→Main→host |
 | [docs/durable-memory.md](docs/durable-memory.md) | Optional persist |
+| [docs/graph_telemetry.md](docs/graph_telemetry.md) | URN + siblings |
 
 ## Checklist
 
-- [ ] Main routes only (or trivial TT); no TO→TO
-- [ ] One TO = one topic
-- [ ] TTs return stubs; TO merges
-- [ ] Follow-ups prefer `to_only` over full re-fan
+### Fail-closed in harness (call these)
+
+- [ ] Durable writes go through `assert_can_write` / `guarded_write` (TO only)
+- [ ] Every spawn calls `assert_spawn_policy` (blocks Main→leaf for topic/substantive/atomic work)
+- [ ] Spawn helpers use `topo_gate(registry)` / `assert_topic_open`
+- [ ] After parsing routes, call `coerce_route_with_registry(..., open_topics=reg.open_topics())`
+- [ ] Atomic URN paradigms only: `swarm` | `plane` | `cove` (`NotAtomicError` otherwise)
+
+### Host must enforce (harness cannot alone)
+
+- [ ] Nest depth / no TT spawn / no TO→TO (runtime nest patch)
+- [ ] Main blocked from durable-store writes (host hook)
+- [ ] Evidence PASS before treating refine-loop as done (honor `evidence` helpers)
+- [ ] TT stubs honored as product voice rules (prompts + review)
+
+### Soft / prompt-only (do not pretend these are hard gates)
+
+- `TT_STUB_INSTRUCTION`, `ROUTER_SYSTEM_PROMPT` — instruction strings
+- Evidence checklists — advisory unless the host blocks on `missing_gates`
+
+### Ops
+
+- [ ] URN Format: `topology:<paradigm>:{topic}--{lane|to}:<ulid>` (no goal prose)
+- [ ] Persist: prefer `persist: durable` / `vault` on TO open when memory should compound
 - [ ] Sticky resume when host supports session ids
-- [ ] Evidence gates on refine / verify compounds
 - [ ] Host glue applied; runtime restarted if required
+

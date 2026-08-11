@@ -8,17 +8,38 @@ from typing import Any, Sequence
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
 
-# Atom verb → paradigm segment (never use goal prose in the URN).
+# Only three atomics get URN paradigm tags. refine-loop / debate / to-brief are
+# compound wiring or roles — not atomic paradigms (use `composition` siblings).
+ATOMIC_PARADIGMS = frozenset({"swarm", "plane", "cove"})
+
 _ATOM_PARADIGM = {
     "research-swarm": "swarm",
-    "refine-loop": "refine",
-    "debate": "debate",
-    "plane-audit": "planes",
+    "swarm": "swarm",
+    "plane-audit": "plane",
+    "plane": "plane",
+    "planes": "plane",  # legacy URN tag
     "verify-claims": "cove",
-    "to-brief": "topic",
+    "cove": "cove",
 }
 
+# Known non-atomic pattern names — fail closed if used as atomic paradigm tags.
+_NON_ATOMIC_PATTERNS = frozenset(
+    {
+        "refine-loop",
+        "refine",
+        "debate",
+        "to-brief",
+        "generator",
+        "critiquer",
+        "consul",
+    }
+)
+
 _ORCH_ROLES = frozenset({"orchestrator", "topic_owner", "to", "moa"})
+
+
+class NotAtomicError(ValueError):
+    """Raised when a non-atomic pattern is used as an atomic paradigm tag."""
 
 
 def _slug(text: str, *, max_len: int = 80) -> str:
@@ -87,12 +108,45 @@ def composition_field(
     }
 
 
+def is_atomic(name: str) -> bool:
+    """True if ``name`` is one of the three atomics or a known alias."""
+    key = (name or "").strip().lower()
+    if key in ATOMIC_PARADIGMS:
+        return True
+    return key in _ATOM_PARADIGM
+
+
 def paradigm_for_atom(atom: str) -> str:
-    """Map user-facing atom verb → short paradigm telemetry tag."""
+    """Map atomic verb → URN paradigm tag. Fail-closed for non-atomics."""
     key = (atom or "").strip().lower()
     if key in _ATOM_PARADIGM:
         return _ATOM_PARADIGM[key]
-    return _slug(atom, max_len=32)
+    if key in _NON_ATOMIC_PATTERNS or key.startswith("refine"):
+        raise NotAtomicError(
+            f"{atom!r} is not an atomic paradigm; atomics are "
+            f"{sorted(ATOMIC_PARADIGMS)}. Put refine-loop/debate/to-brief in "
+            f"`composition` / compound wiring, not the URN paradigm segment."
+        )
+    # Novel atom-like tags: only allow if they already resolve to a trinity tag
+    slug = _slug(atom, max_len=32)
+    if slug in ATOMIC_PARADIGMS:
+        return slug
+    raise NotAtomicError(
+        f"{atom!r} is not an atomic paradigm; atomics are {sorted(ATOMIC_PARADIGMS)}"
+    )
+
+
+def assert_atomic_paradigm(paradigm: str) -> str:
+    """Fail closed unless ``paradigm`` is swarm|plane|cove (or alias)."""
+    key = (paradigm or "").strip().lower()
+    if key in _ATOM_PARADIGM:
+        return _ATOM_PARADIGM[key]
+    slug = _slug(paradigm, max_len=32)
+    if slug in ATOMIC_PARADIGMS:
+        return slug
+    raise NotAtomicError(
+        f"paradigm {paradigm!r} is not atomic; allowed={sorted(ATOMIC_PARADIGMS)}"
+    )
 
 
 def resolve_paradigm(
@@ -102,22 +156,37 @@ def resolve_paradigm(
     role: str = "leaf",
     compound_id: str | None = None,
 ) -> str:
-    """Resolve URN paradigm — never default ``leaf`` for named compounds / TOs.
+    """Resolve URN paradigm.
 
-    Priority: explicit paradigm → atom mapping → compound_id as novel tag →
-    role (``topic``/``moa`` for TO) → ``leaf`` only for true Main→single informal TT.
+    Priority: explicit paradigm (must be atomic if set as atom-like) →
+    atomic ``atom`` mapping → ``compound_id`` slug (composition identity) →
+    role (``topic`` for TO) → ``leaf`` only for informal Main→TT.
+
+    Non-atomic patterns (``refine-loop``, ``debate``, …) must not be passed as
+    ``atom``; use ``compound_id`` / composition siblings instead.
     """
     if isinstance(paradigm, str) and paradigm.strip():
-        return _slug(paradigm, max_len=32)
+        # Explicit override: allow TO tags + leaf + atomics; reject refine etc.
+        raw = paradigm.strip().lower()
+        if raw in {"leaf", "topic", "moa"} or raw in _ORCH_ROLES:
+            return "topic" if raw in _ORCH_ROLES or raw == "moa" else _slug(raw, max_len=32)
+        if raw == "topic":
+            return "topic"
+        try:
+            return assert_atomic_paradigm(paradigm)
+        except NotAtomicError:
+            # Named freeform compound tags allowed via paradigm only when they
+            # are not known non-atomic pattern names.
+            if raw in _NON_ATOMIC_PATTERNS or raw.startswith("refine"):
+                raise
+            return _slug(paradigm, max_len=32)
     if isinstance(atom, str) and atom.strip():
         return paradigm_for_atom(atom)
     if isinstance(compound_id, str) and compound_id.strip():
-        # Named compound is not an informal leaf — tag as the compound slug
-        # (composition sibling field carries the full wiring).
         return _slug(compound_id, max_len=32)
     role_n = (role or "").strip().lower()
     if role_n in _ORCH_ROLES:
-        return "topic"  # TO; ``moa`` accepted as explicit paradigm override
+        return "topic"
     return "leaf"
 
 

@@ -185,3 +185,30 @@ def scout_lanes_for_decision(
         return list(decision.lenses)
     # open_topic / full_refan
     return list(default_lanes)
+
+
+def coerce_route_with_registry(
+    decision: RouteDecision,
+    *,
+    open_topics: set[str] | frozenset[str] | list[str],
+) -> RouteDecision:
+    """Fail-soft coerce: ``open_topic`` → ``to_only`` when topic already sticky-open.
+
+    Hosts should call this after ``validate_route_decision`` / ``parse_route_decision``
+    and before spawning. Uses an explicit open-topic set (usually
+    ``registry.open_topics()``) so the harness stays free of hidden globals.
+    """
+    if decision.action != "open_topic" or not decision.topic:
+        return decision
+    opened = {str(t).strip().lower() for t in open_topics if str(t).strip()}
+    if decision.topic.strip().lower() not in opened:
+        return decision
+    reason = decision.reason or ""
+    suffix = "coerced open_topic→to_only (topic already sticky-open)"
+    return RouteDecision(
+        kind="topic",
+        action="to_only",
+        topic=decision.topic,
+        lenses=[],
+        reason=f"{reason}; {suffix}".strip("; ").strip(),
+    )

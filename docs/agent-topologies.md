@@ -1,28 +1,30 @@
-# Agent Topologies (atom library)
+# Agent Topologies (pattern library)
 
-User-facing names are short verbs (**atoms**). Academic aliases (`got`, `cove`,
-`moa`, …) are **telemetry / `paradigm` tags only**. TOs compose atoms
-into **compounds** — see [compounds.md](compounds.md). System name: **Compound
-Topologies**; harness: **agent-topo-harness**.
+**Atomic paradigms** (URN tags) are only three: **`swarm`**, **`plane`**,
+**`cove`**. Academic aliases and compound wiring steps are not atomics.
+
+System name: **Compound Topologies**; harness: **agent-topo-harness**.
+TOs compose atomics (+ optional non-atomic wiring like `refine-loop`) into
+**compounds** — see [compounds.md](compounds.md).
 
 ## Control plane (who spawns whom)
 
 ```
 Main (talking agent)
   └── TO(s)     ← flat only; mid-tier (host role often orchestrator)
-        ├── research-swarm
-        ├── refine-loop
-        ├── debate
-        ├── plane-audit
-        ├── verify-claims
+        ├── research-swarm   (atomic → swarm)
+        ├── plane-audit      (atomic → plane)
+        ├── verify-claims    (atomic → cove)
+        ├── refine-loop      (wiring / Gen+Critiquer — NOT an atomic URN tag)
+        ├── debate           (pattern — NOT an atomic URN tag)
         └── …TTs only (no further topology spawn)
 ```
 
 - **Main** owns the flat set of TOs; may pass a `composition:` hint.
 - **TO** may nest-delegate **TTs** only (`role=orchestrator`, depth 1).
-  May compose any atom mix / invent novel compounds under invariants.
-- **TTs** never spawn.
-- **One TO = one topic.** All atoms under it stay on-topic.
+  May compose any mix / invent novel compounds under invariants.
+- **TTs** never spawn (host must enforce nest depth; harness cannot alone).
+- **One TO = one topic.** All work under it stays on-topic.
   Directional split (scouts/planes) = lenses of the same topic; unrelated work
   → another TO.
 
@@ -35,12 +37,14 @@ Until release:
 - Prefer **reusing the same TT session** for that role/lane.
 - Same for TOs: **one handle per topic**; follow-ups resume it.
 - **Registry:** [`StickyRegistry`](sticky-registry.md).
-- **Follow-ups:** [intent routing](intent-routing.md) — default `to_only`.
+- **Follow-ups:** [intent routing](intent-routing.md) — default `to_only`
+  (`coerce_route_with_registry` fails-soft coerces re-`open_topic`).
 - **TT outputs:** [tt stubs](tt-stubs.md) — short findings; TO writes
   the brief / user answer.
+- **Topic must be open:** `topo_gate(registry)` / `assert_topic_open`.
 
-This is **hygiene** (avoid thrash) — not a promise the graph is cheaper than a
-monolith. See [cost-analysis.md](cost-analysis.md).
+This is **hygiene** (avoid thrash) — sticky resume and scoped tools, not a
+latency or spend guarantee. See [sticky-registry.md](sticky-registry.md).
 
 | Lane | Sticky unit | Reuse when |
 | :--- | :--- | :--- |
@@ -50,65 +54,68 @@ monolith. See [cost-analysis.md](cost-analysis.md).
 | Plane-audit | One TT per plane | Re-check that plane after a fix |
 | Verify-claims | Draft / verifier / reconciler | Another claim pass |
 
-- Spawn background when the host supports resume/poll so the TO can
-  feed follow-ups into the **same** worker.
-- Parallel sticky lanes are fine if they stay on-topic and merge through the
-  TO brief.
-
 **Durable memory** is optional. When Main sets `persist: durable`, **TO
 is the sole agent writer**. Main never writes; TTs are read-only. See
 [durable-memory.md](durable-memory.md).
 
-## Pattern library (atoms)
+## Atomics (URN paradigms)
+
+### `research-swarm` → `swarm`
+- **Roles**: Scouts with mutually exclusive sub-queries.
+- **Lifecycle**: Sticky per scout lens.
+- **Merge**: TO writes one brief — [to-brief-template.md](to-brief-template.md).
+
+### `plane-audit` → `plane`
+- **Roles**: Independent planes (e.g. security ∥ performance ∥ UX).
+- **Lifecycle**: Sticky per plane TT.
+- **Merge**: TO requires all planes clear with evidence.
+
+### `verify-claims` → `cove`
+- **Roles**: Draft → extract claims → blinded verifiers → reconciler.
+- **Merge**: TO owns reconciled brief before any build step.
+
+## Non-atomic patterns (composition / wiring)
+
+These remain useful under a TO but **must not** appear as URN `paradigm`
+atom tags (`NotAtomicError` if passed to `paradigm_for_atom`).
 
 ### `refine-loop`
 - **Roles**: Generator produces from the **TO brief** only; Critiquer
   audits against a checklist or tests.
 - **Lifecycle**: Sticky Gen + Critiquer until TO releases.
 - **Hard exit gates**: see [evidence-gates.md](evidence-gates.md).
-
-### `research-swarm`
-- **Roles**: Scouts with mutually exclusive sub-queries.
-- **Lifecycle**: Sticky per scout lens.
-- **Merge**: TO writes one brief — [to-brief-template.md](to-brief-template.md).
+- **Telemetry**: put under `composition` (e.g. compound wiring), not paradigm.
 
 ### `debate`
 - **Roles**: Additor / Reductor / Consul.
 - **Not** `plane-audit` — debate is adversarial scope/value; planes are
   independent risk lenses.
 
-### `plane-audit`
-- **Roles**: Independent planes (e.g. security ∥ performance ∥ UX).
-- **Lifecycle**: Sticky per plane TT.
-- **Merge**: TO requires all planes clear with evidence.
+### `to-brief`
+- TO synthesis step — not a TT atom and not an atomic paradigm.
 
-### `verify-claims`
-- **Roles**: Draft → extract claims → blinded verifiers → reconciler.
-- **Merge**: TO owns reconciled brief before any build step.
+## Enforcement honesty
 
-### Internal-only paradigms (telemetry tags)
-
-| Tag | Maps to |
-| :--- | :--- |
-| `swarm` | `research-swarm` |
-| `refine` | `refine-loop` |
-| `debate` / `consul` | `debate` |
-| `planes` | `plane-audit` |
-| `cove` | `verify-claims` |
-| `got` / `moa` / `adversarial` | Rare; TO only |
+| Policy | Harness | Host must |
+| :--- | :--- | :--- |
+| TO-only durable writes | `assert_can_write` (fail-closed) | Wrap every write / Main store hook |
+| Main→leaf for topic/substantive work | `assert_spawn_policy` | Call before every spawn |
+| Topic open before TT work | `topo_gate` / `assert_topic_open` | Decorate spawn helpers |
+| Intent routing policy | Schema + `coerce_route_with_registry` | Parse + coerce before spawn |
+| Sticky “must be open” | Registry + gates above | Persist sticky JSON |
+| Evidence / TT stubs “enforced” | Soft helpers + prompts | Honor gates before “done” |
+| Nest depth / TT cannot spawn | — | Runtime nest limits |
+| Model allowlist | `assert_allowed` | Load host config |
 
 ## Durable memory (optional flag, not a topology)
 
 - **`persist: none`** (harness default) or **`persist: durable`** (host may
   alias `vault`).
-- **Virgil host:** prefer `persist: vault` on Topic Orchestrator open for
-  work that should compound in Obsidian; leave `none` only for throwaway
-  leaves / ephemeral asks.
+- Prefer `persist: durable` / `vault` on Topic Orchestrator open when durable
+  memory should compound; leave `none` for throwaway leaves / ephemeral asks.
 - **Writer**: TO only. TTs: read-only if allowlisted. Main does not write.
 - Details: [durable-memory.md](durable-memory.md).
 
 ## Graph telemetry
 
-See [graph_telemetry.md](graph_telemetry.md) — URN is
-`topology:<paradigm>:<topic--lane|topic--to>:<ulid>`; composition /
-`parent_run_id` / sticky live as sibling fields.
+See [graph_telemetry.md](graph_telemetry.md).

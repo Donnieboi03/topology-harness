@@ -1,6 +1,10 @@
 # Compound topologies (recipes)
 
-**Compounds** are the normal unit of work under **Compound Topologies** / **agent-topo-harness**. Atoms alone are incomplete defaults; TOs wire atoms (and may invent novel compounds) under control-plane invariants.
+**Compounds** are the normal unit of work under **Compound Topologies** /
+**agent-topo-harness**. Atomics alone (`swarm` / `plane` / `cove`) are incomplete
+defaults; TOs wire atomics **and** non-atomic steps (especially `refine-loop`)
+under control-plane invariants. `refine-loop` is **wiring**, not an atomic URN
+paradigm — record it in `composition`.
 
 Named recipes below are preferred starting points. Main may hint; TO owns final wiring.
 
