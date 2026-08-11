@@ -1,16 +1,27 @@
 ---
 name: topology-harness
 description: >-
-  Compound Topologies control plane: Main gates Topic Orchestrators (TOs);
-  one topic per TO; TTs (Topic Topology workers) under compounds; sticky
-  lanes; evidence gates; intent routing; TT stubs. Use when designing or
-  enforcing multi-agent topology policy on any host that can spawn nested
-  workers.
+  Compound Topologies control plane (topology-harness): Main gates Topic
+  Orchestrators (TOs); one topic per TO; TTs under compounds; sticky lanes;
+  evidence gates; intent routing; TT stubs; assert_spawn_policy / topo_gate /
+  coerce_route / assert_can_write. On Cursor, this chat is the host — use Task
+  sub-agents as TO/TT (see docs/adapters/cursor.md); route autonomously without
+  waiting for the user to say multi-agent. Use when designing or enforcing
+  multi-agent topology, spawning nested workers, or when the user mentions TO,
+  TT, Compound Topologies, agent topologies, or sticky resume. CLI:
+  topology-harness doctrine | cursor-map | --doctor | compounds.
 ---
 
 # Compound Topologies (topology-harness)
 
 Portable **orchestration policy** for multi-agent systems.
+
+**CLI (on PATH after install):** `topology-harness doctrine` · `cursor-map` ·
+`--doctor` · `compounds` · `cost-smoke` · or heredoc Python with helpers
+pre-imported.
+**Cursor host:** always-apply rule treats **this chat as Main** and Cursor
+`Task` sub-agents as TO/TT — see [docs/adapters/cursor.md](docs/adapters/cursor.md)
+and [install.md](install.md). Do not wait for the user to say “multi-agent.”
 
 A host runtime provides chat, spawn/resume, tools, and sessions. This harness
 adds: Main vs Topic Orchestrator (TO) vs TT, one-topic isolation, compounds,

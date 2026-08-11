@@ -19,8 +19,9 @@ Start with the [README](../README.md) for purpose and utilization, then:
 | [vault-write-policy.md](vault-write-policy.md) | Persist write gate (host maps backend) |
 | [cost-analysis.md](cost-analysis.md) | Optional session-tree / A-B measurement helpers (not doctrine) |
 | [graph_telemetry.md](graph_telemetry.md) | URN + sibling telemetry |
+| [adapters/cursor.md](adapters/cursor.md) | Cursor as host (Main/TO/TT → chat + Task) |
 
 Also: [../SKILL.md](../SKILL.md), [../install.md](../install.md).
 
-Host-specific mappings (chat surfaces, nest patches, durable backends) stay in
-the **host** repository — not here.
+Host-specific mappings live under `docs/adapters/` (optional) or in the host
+repo. The core package stays host-agnostic.

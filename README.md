@@ -27,6 +27,24 @@ atomic, how sticky handles work, and which checks fail closed.
 Without this layer, a host can still fan out workers — typically as fat
 children, mixed topics, and unreviewed “just implement” leaves.
 
+### Cursor / agent CLI
+
+When Cursor Rules install this package, **Cursor is the host**:
+
+```bash
+uv tool install -e .          # topology-harness on PATH
+topology-harness --doctor
+topology-harness cursor-map
+topology-harness doctrine
+```
+
+Always-apply rule: `~/.cursor/rules/topology-harness.mdc`  
+Skill: `~/.cursor/skills/topology-harness/` → this repo’s `SKILL.md`  
+Adapter: [docs/adapters/cursor.md](docs/adapters/cursor.md)  
+Details: [install.md](install.md)
+
+Other hosts bind the same helpers to their own spawn API; see utilization below.
+
 ---
 
 ## Purpose

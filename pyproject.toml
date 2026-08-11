@@ -11,6 +11,7 @@ dependencies = [
 dev = ["pytest>=8.0"]
 
 [project.scripts]
+topology-harness = "topology_harness.run:main"
 topology-cost-smoke = "topology_harness.cost_smoke:main"
 agent-topo-cost-smoke = "topology_harness.cost_smoke:main"
 
