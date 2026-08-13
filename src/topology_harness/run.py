@@ -55,8 +55,9 @@ Main
 Hard rules
 - Main gates TOs; follow-ups default to_only (sticky resume), not auto re-fan
 - Main→leaf blocked for sticky-open / substantive / atomic work (assert_spawn_policy)
-- Atom URN paradigms ONLY: swarm | plane | cove (NotAtomicError otherwise)
-- refine-loop / debate are composition wiring, NOT atomics
+- Public menu — atoms ONLY: swarm | plane | cove | shard (NotAtomicError otherwise)
+- Public combinator: cycle only; public transition: revise only
+- Prefer named compounds (five recipes; topology-harness compounds)
 - Durable writes: assert_can_write — TO only (Main/TT blocked)
 - Spawn TT under TO: assert_topic_open / topo_gate
 - After parse: coerce_route_with_registry(... open_topics=reg.open_topics())
@@ -92,7 +93,10 @@ def _version() -> str:
 
 
 def _repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
+    """Checkout root when developing; package dir when installed from a wheel."""
+    from topology_harness.models import harness_root
+
+    return harness_root()
 
 
 def _helpers_ns() -> dict[str, Any]:
@@ -100,17 +104,22 @@ def _helpers_ns() -> dict[str, Any]:
     import topology_harness as th
     from topology_harness import (  # noqa: F401
         ATOMIC_PARADIGMS,
+        COMBINATORS,
         COMPOUNDS,
         ROUTER_SYSTEM_PROMPT,
+        TRANSITIONS,
         StickyRegistry,
         TT_STUB_INSTRUCTION,
         assert_can_write,
+        assert_combinator,
         assert_spawn_policy,
         assert_topic_open,
+        assert_transition,
         coerce_route_with_registry,
         make_topology_urn,
         parse_route_decision,
         parse_tt_stub,
+        resolve_legacy_pattern,
         topo_gate,
     )
 
@@ -118,6 +127,11 @@ def _helpers_ns() -> dict[str, Any]:
         "th": th,
         "topology_harness": th,
         "ATOMIC_PARADIGMS": ATOMIC_PARADIGMS,
+        "COMBINATORS": COMBINATORS,
+        "TRANSITIONS": TRANSITIONS,
+        "assert_combinator": assert_combinator,
+        "assert_transition": assert_transition,
+        "resolve_legacy_pattern": resolve_legacy_pattern,
         "COMPOUNDS": COMPOUNDS,
         "ROUTER_SYSTEM_PROMPT": ROUTER_SYSTEM_PROMPT,
         "StickyRegistry": StickyRegistry,
@@ -142,10 +156,14 @@ def _helpers_ns() -> dict[str, Any]:
 
 def run_doctor() -> int:
     root = _repo_root()
+    checkout = (root / "SKILL.md").is_file()
     print(f"topology-harness doctor  version={_version()}")
-    print(f"  repo: {root}")
-    print(f"  skill: {root / 'SKILL.md'}  exists={ (root / 'SKILL.md').is_file() }")
-    print(f"  docs:  {root / 'docs'}  exists={ (root / 'docs').is_dir() }")
+    print(f"  root: {root}  mode={'checkout' if checkout else 'installed'}")
+    if checkout:
+        print(f"  skill: {root / 'SKILL.md'}  exists=True")
+        print(f"  docs:  {root / 'docs'}  exists={(root / 'docs').is_dir()}")
+    else:
+        print("  skill/docs: (not required for installed wheel)")
 
     ok = True
     try:
@@ -157,12 +175,43 @@ def run_doctor() -> int:
         ok = False
 
     try:
-        import agent_topo_harness  # noqa: F401
+        from topology_harness.blackboard import Blackboard, REGIONS, retire_topic
 
-        print("  import agent_topo_harness OK (deprecated shim)")
+        _ = Blackboard, retire_topic
+        print(f"  blackboard OK  regions={','.join(REGIONS)}")
     except Exception as exc:
-        print(f"  import agent_topo_harness FAIL: {exc}")
-        # shim optional for doctor green if topology_harness works
+        print(f"  blackboard FAIL: {exc}")
+        ok = False
+
+    try:
+        import hashlib
+
+        from topology_harness.models import config_path, load_models_config
+
+        cfg = config_path()
+        load_models_config(cfg)
+        digest = hashlib.sha256(cfg.read_bytes()).hexdigest()[:12]
+        print(f"  models.yaml OK  path={cfg}  sha256={digest}")
+    except Exception as exc:
+        print(f"  models.yaml FAIL: {exc}")
+        ok = False
+
+    try:
+        from topology_harness.sticky import (
+            STICKY_HANDLE_KINDS,
+            STICKY_PERSIST_KEYS,
+            StickyRegistry,
+        )
+
+        _ = StickyRegistry
+        print(
+            "  sticky schema OK  "
+            f"kinds={list(STICKY_HANDLE_KINDS)}  "
+            f"persist_keys={list(STICKY_PERSIST_KEYS)}"
+        )
+    except Exception as exc:
+        print(f"  sticky schema FAIL: {exc}")
+        ok = False
 
     try:
         from topology_harness.cost_smoke import run_smoke
@@ -170,8 +219,12 @@ def run_doctor() -> int:
         figs = run_smoke()
         print(
             "  cost_smoke OK  "
-            f"A={figs['cost_A_one_turn_one_retry']:.4f}  "
-            f"B={figs['cost_B_one_turn_one_retry']:.4f}"
+            f"legacy A={figs['cost_A_one_turn_one_retry']:.4f} "
+            f"B={figs['cost_B_one_turn_one_retry']:.4f} "
+            f"({figs['legacy_B_vs_A_pct']:+.1f}%)  |  "
+            f"cast A={figs['cost_A_cast_monolith_3flash']:.4f} "
+            f"B={figs['cost_B_cast_tiered']:.4f} "
+            f"({figs['cast_B_vs_A_pct']:+.1f}%)"
         )
     except Exception as exc:
         print(f"  cost_smoke FAIL: {exc}")
@@ -179,10 +232,17 @@ def run_doctor() -> int:
 
     cursor_rule = Path.home() / ".cursor" / "rules" / "topology-harness.mdc"
     cursor_skill = Path.home() / ".cursor" / "skills" / "topology-harness" / "SKILL.md"
+    # Adapter doc lives in checkout docs/; optional when installed from wheel.
     cursor_adapter = root / "docs" / "adapters" / "cursor.md"
     print(f"  cursor rule:  {cursor_rule}  exists={cursor_rule.is_file()}")
     print(f"  cursor skill: {cursor_skill}  exists={cursor_skill.is_file()}")
-    print(f"  cursor adapter doc: {cursor_adapter}  exists={cursor_adapter.is_file()}")
+    if checkout:
+        print(
+            f"  cursor adapter doc: {cursor_adapter}  "
+            f"exists={cursor_adapter.is_file()}"
+        )
+    else:
+        print("  cursor adapter doc: (checkout-only; see package README)")
     if cursor_rule.is_file():
         text = cursor_rule.read_text(encoding="utf-8")
         if "Cursor session is the Compound Topologies host" in text or (
@@ -206,18 +266,21 @@ def _print_doctrine() -> None:
 
 
 def _print_compounds() -> None:
-    from topology_harness import COMPOUNDS
+    from topology_harness import COMPOUNDS, render_node
 
     for cid, c in sorted(COMPOUNDS.items()):
         if isinstance(c, dict):
             intent = c.get("intent") or ""
-            wiring = c.get("wiring") or []
+            wiring = [render_node(n) for n in c.get("wiring") or []]
+            optional = [render_node(n) for n in c.get("optional") or []]
             when = c.get("when") or ""
             print(f"{cid}")
             if intent:
                 print(f"  intent: {intent}")
             if wiring:
-                print(f"  wiring: {wiring}")
+                print(f"  wiring: {' -> '.join(wiring)}")
+            if optional:
+                print(f"  optional: {' -> '.join(optional)}")
             if when:
                 print(f"  when: {when}")
         else:
@@ -227,9 +290,7 @@ def _print_compounds() -> None:
 def _sticky_session(session_id: str) -> int:
     from topology_harness import StickyRegistry, sticky_path_for_session
 
-    home = os.environ.get("HERMES_HOME") or str(
-        Path.home() / ".hermes/profiles/virgil-executor"
-    )
+    home = os.environ.get("HERMES_HOME") or str(Path.home() / ".hermes")
     state = Path(home) / "state"
     path = sticky_path_for_session(state, session_id)
     print(f"sticky path: {path}")

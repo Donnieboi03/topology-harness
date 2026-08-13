@@ -38,8 +38,12 @@ Each handle may carry graph telemetry siblings (persisted with the registry):
 Ledger / stall / `active_lane` live in TO **`meta`** (no snapshot schema break).
 See [to-brief-template.md](to-brief-template.md) and `topology_harness.ledgers`.
 
-Aliases: `get_or_create_orchestrator` / `get_or_create_leaf` still work. Load accepts
-legacy `tos` / `leaves` / `kind: topic_owner|leaf` JSON.
+Aliases: `get_or_create_orchestrator` (= `get_or_create_to`). Load still accepts
+legacy JSON shapes `tos` / `leaves` / `kind: topic_owner|leaf` (normalized to
+orchestrator / tt on load).
+
+Schema constants: `STICKY_HANDLE_KINDS`, `STICKY_PERSIST_KEYS` (see also
+[host-contracts.md](host-contracts.md)).
 
 ## Host mapping
 

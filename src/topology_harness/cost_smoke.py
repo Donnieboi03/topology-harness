@@ -1,14 +1,20 @@
-"""Synthetic A vs B cost smoke asserts for Compound Topologies.
+"""Synthetic A vs B cost figures for Compound Topologies.
 
 Fair baseline: one user-turn of heavy work + one retry for BOTH arms.
 
-Run from the harness checkout:
+* **legacy_uniform** — every call at $1.50/$7.50
+* **cast_tiered** — monolith A at 3-flash; B uses Main 2.5-flash-lite /
+  TO 3-flash / scout 3.5-lite / gen 3.6
 
-  uv run python -m topology_harness.cost_smoke
+Hard asserts live in ``tests/``; this module computes + prints for CLI/doctor.
+
+  topology-harness cost-smoke
 """
 from __future__ import annotations
 
 from .cost import (
+    CAST_RATES,
+    MONOLITH_RATES,
     P_CACHE_PER_M,
     P_IN_PER_M,
     P_OUT_PER_M,
@@ -22,25 +28,26 @@ FAT_C0 = 200_000
 
 
 def run_smoke() -> dict[str, float]:
-    """Run synthetic asserts; raise AssertionError on failure. Return key figures.
+    """Compute synthetic A/B figures (no asserts — tests own pass/fail)."""
+    a_legacy = cost_A(FAT_C0, T_A=1, N_retries=1)
+    b_legacy = cost_B(FAT_C0, T_A=1, N_retries=1)
 
-    One-turn + one-retry is *not* asserted as B < A. Fair one-shot often has
-    A ≤ B; isolation value shows when Main stays fat but work spans topics /
-    many work rounds.
-    """
-    a_one = cost_A(FAT_C0, T_A=1, N_retries=1)
-    b_one = cost_B(FAT_C0, T_A=1, N_retries=1)
+    a_cast = cost_A(FAT_C0, T_A=1, N_retries=1, rates=MONOLITH_RATES)
+    b_cast = cost_B(FAT_C0, T_A=1, N_retries=1, role_rates=CAST_RATES)
 
     trivial_main = cost_trivial_main_only()
     trivial_forced_to = cost_forced_topic_owner_trivial()
-    assert trivial_main < trivial_forced_to, (
-        "trivial: expected main-only cheaper than forced TO path, "
-        f"got main={trivial_main:.4f} forced_orch={trivial_forced_to:.4f}"
-    )
+
+    def _pct(a: float, b: float) -> float:
+        return 0.0 if a == 0 else 100.0 * (b - a) / a
 
     return {
-        "cost_A_one_turn_one_retry": a_one,
-        "cost_B_one_turn_one_retry": b_one,
+        "cost_A_one_turn_one_retry": a_legacy,
+        "cost_B_one_turn_one_retry": b_legacy,
+        "legacy_B_vs_A_pct": _pct(a_legacy, b_legacy),
+        "cost_A_cast_monolith_3flash": a_cast,
+        "cost_B_cast_tiered": b_cast,
+        "cast_B_vs_A_pct": _pct(a_cast, b_cast),
         "trivial_main": trivial_main,
         "trivial_forced_to": trivial_forced_to,
         "p_in": P_IN_PER_M,
@@ -51,12 +58,19 @@ def run_smoke() -> dict[str, float]:
 
 def main() -> None:
     figures = run_smoke()
-    print("topology-harness cost_smoke OK")
-    for k, v in figures.items():
-        if isinstance(v, float):
-            print(f"  {k}={v:.6f}")
-        else:
-            print(f"  {k}={v}")
+    print("topology-harness cost_smoke")
+    print(
+        f"  legacy_uniform  A={figures['cost_A_one_turn_one_retry']:.6f}  "
+        f"B={figures['cost_B_one_turn_one_retry']:.6f}  "
+        f"B_vs_A={figures['legacy_B_vs_A_pct']:+.1f}%"
+    )
+    print(
+        f"  cast_tiered     A={figures['cost_A_cast_monolith_3flash']:.6f}  "
+        f"B={figures['cost_B_cast_tiered']:.6f}  "
+        f"B_vs_A={figures['cast_B_vs_A_pct']:+.1f}%"
+    )
+    print(f"  trivial_main={figures['trivial_main']:.6f}")
+    print(f"  trivial_forced_to={figures['trivial_forced_to']:.6f}")
 
 
 if __name__ == "__main__":

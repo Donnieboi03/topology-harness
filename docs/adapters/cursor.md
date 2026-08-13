@@ -32,11 +32,15 @@ registry file:
 ```
 
 Use `StickyRegistry` from `topology_harness`. The registry’s session id field is
-an opaque host key (e.g. `cursor` or the repo name).
+an opaque host key (e.g. `cursor` or the repo name). Shared sticky fields and
+the retire-flush contract are documented in [host-contracts.md](../host-contracts.md).
 
 On open: `get_or_create_orchestrator(topic)` and store a brief digest / last Task
 label in `meta`. On resume: load the registry and pass the prior brief into the
 next TO Task prompt.
+
+On topic close: call `retire_topic(...)` (blackboard) then `release_topic(topic)`.
+See [durable-memory.md](../durable-memory.md).
 
 Add `.cursor/topology-sticky/` to `.gitignore` if the file should stay local.
 
@@ -58,6 +62,8 @@ as parallel TT Tasks under one TO; merge before answering the user.
 
 If the workspace has a vault or memory write path: **TO-only** writes
 (`assert_can_write`). Main and TT Tasks must not upsert durable memory.
+Prefer the regioned blackboard (`Blackboard` / `retire_topic`) — see
+[host-contracts.md](../host-contracts.md).
 
 ## CLI
 

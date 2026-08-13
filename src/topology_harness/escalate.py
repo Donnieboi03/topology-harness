@@ -83,7 +83,3 @@ def for_host_telegram(
     return for_host_channel(
         command, rationale, topic_id, channel="telegram", **kwargs
     )
-
-
-# Alias kept for existing host call sites
-for_hermes_telegram = for_host_telegram

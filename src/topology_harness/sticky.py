@@ -20,6 +20,17 @@ from typing import Any, Literal
 # TT = Topic Topology worker under a TO (scout / plane / gen / …).
 HandleKind = Literal["orchestrator", "tt"]
 
+# Schema constants for host adapters / doctor
+STICKY_HANDLE_KINDS: tuple[str, ...] = ("orchestrator", "tt")
+STICKY_PERSIST_KEYS: tuple[str, ...] = (
+    "host_session_id",
+    "hermes_session_id",  # legacy alias accepted on load
+    "orchestrators",
+    "tts",
+    "tos",  # legacy
+    "leaves",  # legacy
+)
+
 # Persistence aliases accepted on load
 _KIND_ALIASES = {
     "orchestrator": "orchestrator",
@@ -95,8 +106,6 @@ class StickyRegistry:
     def get_tt(self, topic: str, lane: str) -> StickyHandle | None:
         with self._get_topic_lock(topic):
             return self._tts.get((_norm_topic(topic), _norm_lane(lane)))
-
-    get_leaf = get_tt
 
     def get_or_create_orchestrator(
         self,
@@ -182,8 +191,6 @@ class StickyRegistry:
             self._tts[key] = handle
             self._trigger_save()
             return handle, True
-
-    get_or_create_leaf = get_or_create_tt
 
     def bind_session(
         self,

@@ -11,6 +11,16 @@ CODE_GATES: tuple[str, ...] = (
     "docs",
 )
 
+# Gates for `shard`: the only atom whose merge is a *partial* function — N
+# workers can each succeed and assembly still fail. Names stay domain-neutral:
+# `assembles_clean` means "terminology consistent, cross-references resolve" for
+# a document exactly as much as "it links" for a module. See docs/atom-theory.md.
+SHARD_GATES: tuple[str, ...] = (
+    "interfaces_agree",
+    "no_overlapping_writes",
+    "assembles_clean",
+)
+
 # Per-atom analogous evidence when the topic is not primarily code.
 ATOM_GATES: dict[str, tuple[str, ...]] = {
     "research-swarm": ("citations", "disjoint_coverage", "no_raw_vault_dump"),
@@ -18,6 +28,9 @@ ATOM_GATES: dict[str, tuple[str, ...]] = {
     "debate": ("tie_break_recorded", "consul_decision", "expand_vs_cut_args"),
     "plane-audit": ("all_planes_clear", "non_overlapping_lenses"),
     "verify-claims": ("claims_extracted", "blinded_verification", "reconciled_facts"),
+    "shard": SHARD_GATES,
+    "build-shard": SHARD_GATES,
+    "parallel-build": SHARD_GATES,
 }
 
 

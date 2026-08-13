@@ -1,0 +1,71 @@
+# Compound Topologies / topology-harness — model routing
+# Host copies or generates equivalent config. Do not commit API keys.
+#
+# MVP cast (2026-08-12):
+#   - Control plane: Main + TO only (no generator/critiquer/scout skill keys)
+#   - TT defaults: keyed by atom (swarm | plane | cove | shard)
+#   - Rate limit: start model walks ONLY entries BELOW it on `ladder` (never upgrades)
+#   - TO may pass tasks[].model as a rare override; not a managed duty
+
+provider: openrouter
+base_url: https://openrouter.ai/api/v1
+
+# Control-plane only
+roles:
+  # Main demotion 2026-08-13: eval_main_route_20260813T074750.json — all four
+  # candidates scored 1.0 on main_route; cheapest eligible = 2.5-flash-lite
+  main: google/gemini-2.5-flash-lite
+  topic_owner: google/gemini-3-flash-preview   # TO merge / orchestrate
+
+# TT defaults by atom (individuated by merge algebra)
+atoms:
+  swarm: google/gemini-3.5-flash-lite          # orthogonal questions
+  plane: google/gemini-3.5-flash-lite          # orthogonal lenses
+  cove: google/gemini-3.1-flash-lite           # orthogonal claims / verify
+  shard: google/gemini-3.6-flash               # orthogonal parts / build
+
+preference:
+  model: google/gemini-2.5-flash-lite          # Main
+  delegation_model: google/gemini-3-flash-preview  # TO default child when no atom
+
+# HIGH → LOW. Down-only fallbacks = slice after the start model.
+ladder:
+  - google/gemini-3.6-flash
+  - google/gemini-3.5-flash
+  - google/gemini-3-flash-preview
+  - google/gemini-3.5-flash-lite
+  - google/gemini-3.1-flash-lite
+  - google/gemini-2.5-flash
+  - google/gemini-2.5-flash-lite
+  - anthropic/claude-3.5-haiku
+  - openai/gpt-4.1-mini
+
+# Back-compat alias of ladder
+fallbacks:
+  - google/gemini-3.6-flash
+  - google/gemini-3.5-flash
+  - google/gemini-3-flash-preview
+  - google/gemini-3.5-flash-lite
+  - google/gemini-3.1-flash-lite
+  - google/gemini-2.5-flash
+  - google/gemini-2.5-flash-lite
+  - anthropic/claude-3.5-haiku
+  - openai/gpt-4.1-mini
+
+allowlist:
+  - google/gemini-3.6-flash
+  - google/gemini-3.5-flash
+  - google/gemini-3.5-flash-lite
+  - google/gemini-3.1-flash-lite
+  - google/gemini-3-flash-preview
+  - google/gemini-2.5-flash
+  - google/gemini-2.5-flash-lite
+  - amazon/nova-micro-v1
+  - qwen/qwen-2.5-7b-instruct
+  - anthropic/claude-3.5-haiku
+  - openai/gpt-4.1-mini
+
+# Must resolve to an allowlist entry (exact or bare alias of an allowlisted id).
+secondary_provider:
+  provider: gemini
+  model: google/gemini-2.5-flash

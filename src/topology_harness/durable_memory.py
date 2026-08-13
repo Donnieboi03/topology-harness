@@ -60,8 +60,3 @@ def guarded_write(
     """Run ``fn`` only after ``assert_can_write(role)``."""
     assert_can_write(role)
     return fn(*args, **kwargs)
-
-
-# Back-compat names
-vault_write_allowed = write_allowed
-guarded_vault_call = guarded_write

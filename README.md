@@ -1,7 +1,5 @@
 # topology-harness
 
-> **Renamed:** formerly `agent-topo-harness` / `agent_topo_harness`. Import `topology_harness` (recommended). The old package name remains a deprecated shim for one release.
-
 **Compound Topologies** — a portable **control-plane policy package** for
 multi-agent systems.
 
@@ -53,8 +51,9 @@ Other hosts bind the same helpers to their own spawn API; see utilization below.
 | :--- | :--- |
 | **Control plane** | Roles and spawn invariants (Main / TO / TT) |
 | **Topic isolation** | One TO per topic; sticky resume per `(topic, lane)` |
-| **Atomic paradigms** | Exactly three URN tags: `swarm`, `plane`, `cove` |
-| **Compounds** | Named recipes that wire atomics + non-atomic steps (e.g. `refine-loop`) |
+| **Atomic paradigms** | Exactly four URN tags: `swarm`, `plane`, `cove`, `shard` |
+| **Combinators** | Public menu: `cycle` only; public transition: `revise` only |
+| **Compounds** | Named recipes that wire atoms and combinator applications |
 | **Fail-closed helpers** | Durable-write gate, spawn policy, topic-open gate, route coerce |
 | **Telemetry** | Topology URNs + sibling fields (`composition`, `parent_run_id`, …) |
 
@@ -71,22 +70,36 @@ and critical escalation to their own stores and channels.
 | **Main** | User-facing agent; routes work; handles chit-chat |
 | **TO** | **Topic Orchestrator** — one per topic; composes compounds; user-facing voice for that topic. Host API name is often `role=orchestrator`. |
 | **TT** | **Topic Topology** worker under a TO (scout, plane lens, verifier, …) |
-| **Atomic** | URN paradigm tag — only `swarm` \| `plane` \| `cove` |
-| **Compound** | Named recipe under a TO (may include non-atomic wiring like `refine-loop`) |
+| **Atom** | URN paradigm tag — public menu only `swarm` \| `plane` \| `cove` \| `shard`. An instance of `fan(partition, worker, merge)`, individuated by merge algebra |
+| **Combinator** | Public menu: `cycle` only (wraps an atom; carries state between rounds) |
+| **Transition** | Public menu: `revise` only (mutates the subject between cycle rounds) |
+| **Compound** | Named recipe under a TO — prefer the five recipes; a DAG over atoms and combinator applications |
 | **`to_only`** | Intent action: resume sticky TO only (no TT re-fan) |
 | **`topic_owner` / `leaf`** | Accepted **API aliases** for TO / TT — prefer TO / TT in new prose |
 
-### The three atomics
+### The four atoms
 
-| Atom (user verb) | URN paradigm | Intent |
+There is only one *shape* — a fan from the TO to blind workers and back. The
+atoms differ by **merge algebra**, which is what makes each one a distinct,
+checkable contract. Full rationale: [docs/atom-theory.md](docs/atom-theory.md).
+
+| Atom | Merge algebra | Intent |
 | :--- | :--- | :--- |
-| `research-swarm` | `swarm` | Parallel scouts / breadth |
-| `plane-audit` | `plane` | Orthogonal risk lenses |
-| `verify-claims` | `cove` | Claim extraction + verification |
+| `swarm` | union | Parallel scouts / breadth |
+| `plane` | conjunction | Orthogonal risk lenses |
+| `cove` | per-claim adjudication | Claim extraction + verification |
+| `shard` | assembly under a contract | Interlocking pieces of one deliverable |
 
-`refine-loop` (Generator / Critiquer), `debate`, and `to-brief` are **not**
-atomics. Put them in **`composition`** / compound wiring. Passing them as
-`atom=` raises `NotAtomicError`.
+### The combinator layer
+
+**Public menu:** combinator `cycle`, transition `revise`. Prefer named compounds
+([docs/compounds.md](docs/compounds.md)).
+
+```
+cycle(atom, revise, accept, bound)
+```
+
+Passing non-atoms as `atom=` raises `NotAtomicError`.
 
 ---
 
@@ -240,7 +253,8 @@ Hosts must wrap every durable-store write. Prefer `persist: durable` (alias
 | Main→leaf for topic work | `assert_spawn_policy` | Call before every spawn |
 | Topic must be open | `topo_gate` / `assert_topic_open` | Decorate TT spawn helpers |
 | open→to_only when sticky | `coerce_route_with_registry` | Call after parse |
-| Atomic-only URN tags | `paradigm_for_atom` / `NotAtomicError` | Pass atomics only in `atom=` |
+| Atom-only URN tags | `paradigm_for_atom` / `NotAtomicError` | Pass atoms only in `atom=` |
+| Closed transition / combinator sets | `assert_transition` / `assert_combinator` | Pass validated values |
 | Nest depth / TT cannot spawn | — | Runtime nest limits |
 | Critiquer PASS / stub shape | prompts + soft helpers | Block “done” without gates |
 
@@ -252,12 +266,13 @@ Hosts must wrap every durable-store write. Prefer `persist: durable` (alias
 | :--- | :--- |
 | [SKILL.md](SKILL.md) | Agent-facing overview + checklist |
 | [docs/README.md](docs/README.md) | Full doctrine index |
-| [docs/agent-topologies.md](docs/agent-topologies.md) | Atomics + patterns |
+| [docs/agent-topologies.md](docs/agent-topologies.md) | Atoms + combinators (pattern library) |
+| [docs/atom-theory.md](docs/atom-theory.md) | Why these primitives — merge algebras, graph classification, star optimality |
 | [docs/compounds.md](docs/compounds.md) | Named compounds |
 | [docs/sticky-registry.md](docs/sticky-registry.md) | Sticky TO/TT registry |
 | [docs/intent-routing.md](docs/intent-routing.md) | Route actions |
 | [docs/graph_telemetry.md](docs/graph_telemetry.md) | URN + siblings |
-| [docs/evidence-gates.md](docs/evidence-gates.md) | Hard exits for refine wiring |
+| [docs/evidence-gates.md](docs/evidence-gates.md) | Hard exits for `cycle(plane, revise)` |
 | [docs/durable-memory.md](docs/durable-memory.md) | Optional persist |
 | [install.md](install.md) | Host wiring |
 

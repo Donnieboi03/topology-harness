@@ -59,9 +59,30 @@ Each field is `{reason, answer}` except speaker/instruction strings:
 ## Rules
 
 1. TO writes the brief; TTs do not publish competing briefs to Main.
-2. Refine-loop Generator input = brief + prior Generator artifact; Critiquer uses
-   the evidence checklist.
+2. For `cycle(plane, revise)`, Generator input = brief + prior Generator artifact;
+   Critiquer uses the evidence checklist.
 3. Fail evidence → revise brief or another producer round — do not lower the bar.
 4. Main→TO is **handoff** (ownership of the topic). TO→TT is **as_tool** (bounded
    turns, stub-only return). Prefer `to_only` / `lens_resume` using `active_lane`
    on follow-ups.
+
+## Retire flush (durable KB)
+
+On topic retire / release, promote from this brief into
+`topology_harness.retire_topic(...)` — never dump raw TT stubs into
+`conclusions`. Typed payload:
+
+```python
+{
+  "hypotheses": [{"text": "..."}],          # from Open risks / educated_guesses
+  "evidence": [{"claim": "...", "source": "...", "gate": "PASS"}],
+  "open_questions": ["..."],
+  "conclusions": [{"text": "...", "gate": "PASS"}],  # gated only
+  "composition": "...",
+  "model_cast": "...",
+}
+```
+
+Abandon path: `retire_topic(..., abandoned=True)` — marks meta, skips
+conclusions. See [durable-memory.md](durable-memory.md) +
+[host-contracts.md](host-contracts.md).

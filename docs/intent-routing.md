@@ -1,8 +1,9 @@
 # Intent routing (follow-ups)
 
 Main decides how each user turn maps onto Compound Topologies. **No length or
-keyword heuristics** — route on user intent. Prefer emitting the route **in-band**
-on Main; a separate classify model is optional for measurement only.
+keyword heuristics** — route on user intent. Main emits a **`RouteDecision`
+in-band** on the live turn (JSON or a `route:` line). Do not use a separate
+classify-only model for live turns.
 
 ## Actions
 
@@ -24,17 +25,18 @@ JSON (preferred) or one line:
 route: to_only kind: topic topic: logging-logs-db lenses: -
 ```
 
-Helpers: `topology_harness.routing`. Example classify model: `roles.router` in
-[config/models.yaml](../config/models.yaml).
+Helpers: `topology_harness.routing` (`RouteDecision`, `parse_route_decision`,
+`coerce_route_with_registry`). Optional measurement may reuse
+`ROUTER_SYSTEM_PROMPT` as prompt text only — live product path is Main in-band.
 
 ## Integration
 
 | Layer | Role |
 | :--- | :--- |
 | Harness | Schema + parse/validate + `coerce_route_with_registry` + prompt text |
-| Main (live) | Emit route before spawn/resume |
+| Main (live) | Emit `RouteDecision` before spawn/resume |
 | Host | Sticky registry + spawn/resume using the **coerced** action |
-| Tests | Call router or inject `RouteDecision` — never `len(msg)` |
+| Tests | Inject `RouteDecision` — never `len(msg)` |
 
 After parse/validate, hosts should:
 

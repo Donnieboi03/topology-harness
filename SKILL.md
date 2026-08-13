@@ -29,13 +29,10 @@ sticky lanes, evidence gates. Without it, a host can still spawn workers —
 just without those rules (fat children, mixed topics, tool thrash).
 
 **Control-plane pieces:** [sticky registry](docs/sticky-registry.md),
-[intent routing](docs/intent-routing.md) (follow-ups default `to_only`),
+[intent routing](docs/intent-routing.md) (follow-ups default `to_only`; Main
+emits `RouteDecision` in-band),
 [TT stubs](docs/tt-stubs.md) → TO brief. Hosts bind `session_id` and
 spawn/resume.
-
-Classify-only intent helper role: ``roles.router`` in [config/models.yaml](config/models.yaml)
-(override with host env). Prefer **in-band** route emission on Main for live
-turns; separate classify calls are for measurement only.
 
 ## Roles
 
@@ -55,10 +52,28 @@ Main
 
 See [README.md](README.md) glossary: **TO** = Topic Orchestrator (same as host `role=orchestrator`); **TT** ≠ the product name Compound Topologies.
 
+## Atoms and combinators
+
+**Public menu** (the registry — teach / wire with these only):
+
+| Kind | Closed set |
+| :--- | :--- |
+| **Atoms** | `swarm` \| `plane` \| `cove` \| `shard` |
+| **Combinator** | `cycle` |
+| **Transition** | `revise` |
+
+Prefer **named compounds** (five recipes) — see [docs/compounds.md](docs/compounds.md).
+Do not invent primitives outside the public menu.
+
 ## Compounds
 
-Named recipes under a TO — see [docs/compounds.md](docs/compounds.md).
+Prefer the five named recipes under a TO — see [docs/compounds.md](docs/compounds.md).
 Main may hint `composition:`; TO owns final wiring.
+
+## Models (example)
+
+[config/models.yaml](config/models.yaml): Main `google/gemini-2.5-flash-lite`;
+TO `google/gemini-3-flash-preview`; atom defaults per that file.
 
 ## Host glue
 
@@ -69,7 +84,8 @@ Host-owned: nest depth/role, hooks, prefill, durable-store mappings. See
 
 | Doc | Topic |
 | :--- | :--- |
-| [docs/agent-topologies.md](docs/agent-topologies.md) | Atoms + control plane |
+| [docs/agent-topologies.md](docs/agent-topologies.md) | Atoms + combinators + control plane |
+| [docs/atom-theory.md](docs/atom-theory.md) | Why these primitives (merge algebras, star optimality) |
 | [docs/compounds.md](docs/compounds.md) | Named compounds |
 | [docs/sticky-registry.md](docs/sticky-registry.md) | Sticky TO/TT registry |
 | [docs/intent-routing.md](docs/intent-routing.md) | Route actions |
@@ -88,18 +104,20 @@ Host-owned: nest depth/role, hooks, prefill, durable-store mappings. See
 - [ ] Every spawn calls `assert_spawn_policy` (blocks Main→leaf for topic/substantive/atomic work)
 - [ ] Spawn helpers use `topo_gate(registry)` / `assert_topic_open`
 - [ ] After parsing routes, call `coerce_route_with_registry(..., open_topics=reg.open_topics())`
-- [ ] Atomic URN paradigms only: `swarm` | `plane` | `cove` (`NotAtomicError` otherwise)
+- [ ] Atom URN paradigms only: `swarm` | `plane` | `cove` | `shard` (`NotAtomicError` otherwise)
+- [ ] Cycles use `combinator=cycle` + `transition=revise`
+- [ ] Prefer named compounds over ad-hoc wiring when a recipe fits
 
 ### Host must enforce (harness cannot alone)
 
 - [ ] Nest depth / no TT spawn / no TO→TO (runtime nest patch)
 - [ ] Main blocked from durable-store writes (host hook)
-- [ ] Evidence PASS before treating refine-loop as done (honor `evidence` helpers)
+- [ ] Evidence PASS before treating `cycle(plane, revise)` as done (honor `evidence` helpers)
 - [ ] TT stubs honored as product voice rules (prompts + review)
 
 ### Soft / prompt-only (do not pretend these are hard gates)
 
-- `TT_STUB_INSTRUCTION`, `ROUTER_SYSTEM_PROMPT` — instruction strings
+- `TT_STUB_INSTRUCTION`, `ROUTER_SYSTEM_PROMPT` — instruction strings (Main emits routes in-band)
 - Evidence checklists — advisory unless the host blocks on `missing_gates`
 
 ### Ops
@@ -108,4 +126,3 @@ Host-owned: nest depth/role, hooks, prefill, durable-store mappings. See
 - [ ] Persist: prefer `persist: durable` / `vault` on TO open when memory should compound
 - [ ] Sticky resume when host supports session ids
 - [ ] Host glue applied; runtime restarted if required
-

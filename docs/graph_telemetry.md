@@ -1,78 +1,50 @@
 # Graph telemetry
 
+Floor for run identity and composition siblings. Helpers live in
+`topology_harness` (`make_topology_urn`, `composition_field`,
+`sibling_telemetry_fields`, fail-closed asserts).
+
 ## Topology URN
 
 Shape: `topology:<paradigm>:<workflow-slug>:<ulid>`
 
-### paradigm (atomics only)
+**Paradigm segment = atom only:** `swarm` | `plane` | `cove` | `shard`.
 
-Only **three** atomics get URN paradigm tags:
+Do **not** put combinators or transitions in the paradigm segment.
+For `cycle(plane, revise)`, the URN paradigm stays `plane`; `combinator` /
+`transition` are siblings.
 
-| Atom (user verb) | Paradigm |
-| :--- | :--- |
-| `research-swarm` / `swarm` | `swarm` |
-| `plane-audit` / `plane` (legacy `planes`) | `plane` |
-| `verify-claims` / `cove` | `cove` |
+Control-plane / informal tags (not atomics): `topic`, `leaf`; named compound id
+may appear when no atom is set (`resolve_paradigm(compound_id=…)`).
 
-**Not atomics** (do **not** put these in the URN paradigm segment):
-
-- `refine-loop` / Gen+Critiquer — compound **wiring**; record under `composition`
-- `debate`, `to-brief`, consul roles — patterns / roles, not atomic paradigms
-
-Fail-closed helpers: `paradigm_for_atom`, `assert_atomic_paradigm`, `NotAtomicError`.
-
-Control-plane tags (not atomics):
-
-- Topic Orchestrator → `topic` (or explicit `moa`)
-- Informal Main → single TT → `leaf`
-- Named compound id may appear as paradigm when no atom is set (`resolve_paradigm(compound_id=…)`)
-
-### workflow-slug
-
-Stable handle identity — **not** goal prose:
-
-| Actor | Slug |
-| :--- | :--- |
-| TT | `{topic}--{lane}` |
-| TO | `{topic}--to` |
-
-Helper: `workflow_slug_for(topic, lane, role=…)`.
-
-### Examples
+Workflow-slug: stable handle identity — TT `{topic}--{lane}`, TO `{topic}--to`
+(`workflow_slug_for`).
 
 ```
-topology:topic:auth-refresh--to:01HZ…
 topology:plane:auth-refresh--security:01HZ…
 topology:swarm:auth-refresh--scout-schema:01HZ…
 topology:cove:claims-pass--verifier:01HZ…
-topology:leaf:quick-fix--default:01HZ…   # informal Main→TT only
+topology:shard:api-client--mailer:01HZ…
 ```
 
-## Sibling fields (not stuffed into the URN)
+## Sibling fields
 
 | Field | Meaning |
 | :--- | :--- |
-| `composition` | Compound id / freeform wiring (`composition_field`) — **home for refine-loop** |
+| `combinator` | Public menu: `cycle` |
+| `transition` | Public menu: `revise` — only with `combinator=cycle` |
+| `composition` | Compound id + atoms + combinator/transition (`composition_field`) |
 | `control_plane` | `main` \| `orchestrator` \| `tt` |
-| `topic` | Kebab topic slug |
-| `lane` | TT lane id (omit for TO) |
-| `sticky` | Whether this worker resumed a prior session |
-| `durable_writer` | Always `orchestrator` when persist writes occur |
-| `parent_run_id` | Shared across one fan-out (siblings share) |
-| `persist` | `none` \| `durable` (host alias `vault`) |
+| `topic` / `lane` | Topic slug; TT lane (omit for TO) |
+| `parent_run_id` | Shared across one fan-out |
+| `sticky` / `durable_writer` / `persist` | Resume flag; writer role; persist mode |
 
-Helpers: `make_topology_urn`, `workflow_slug_for`, `resolve_paradigm`,
-`paradigm_for_atom`, `composition_field`, `sibling_telemetry_fields`.
+`combinator` / `transition` omitted when unset.
+
+## Schema
+
+`composition_field()` stamps **`schema_version=2`** (`COMPOSITION_SCHEMA_VERSION`):
+atom in the URN paradigm; `combinator` / `transition` as siblings.
 
 Sticky handles persist `topology_urn`, `composition`, and `parent_run_id`
 alongside `session_id` (see [sticky-registry.md](sticky-registry.md)).
-
-## Fail-closed host hooks
-
-| Helper | Behavior |
-| :--- | :--- |
-| `assert_can_write(role)` | Only TO may durable-write |
-| `assert_spawn_policy(...)` | Blocks Main→leaf for topic/substantive/atomic work; returns URN paradigm |
-| `assert_topic_open` / `topo_gate(registry)` | Topic must have sticky TO |
-| `coerce_route_with_registry` | `open_topic` → `to_only` when topic already open |
-| `validate_route_decision` | Route schema only |

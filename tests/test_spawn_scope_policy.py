@@ -1,53 +1,21 @@
-"""Unit tests for topology-harness cost smoke and core helpers."""
+"""Unit tests for spawn policy, scope, telemetry, durable memory, escalate."""
 from __future__ import annotations
 
 import pytest
 
-from topology_harness.compounds import COMPOUNDS, get_compound
-from topology_harness.cost import cost_A, cost_B
-from topology_harness.cost_smoke import FAT_C0, run_smoke
-from topology_harness.escalate import build_critical_approval_payload
+from topology_harness.durable_memory import assert_can_write
+from topology_harness.escalate import build_critical_approval_payload, for_host_telegram
 from topology_harness.evidence import CODE_GATES, all_gates_passed, missing_gates
 from topology_harness.scope import build_scope_card
+from topology_harness.spawn_policy import SpawnPolicyError, assert_spawn_policy
 from topology_harness.telemetry import (
+    NotAtomicError,
     make_topology_urn,
     paradigm_for_atom,
     resolve_paradigm,
     sibling_telemetry_fields,
     workflow_slug_for,
 )
-from topology_harness.templates import docs_dir, load_template
-from topology_harness.vault_policy import assert_can_write
-
-
-def test_cost_smoke_passes() -> None:
-    figures = run_smoke()
-    assert figures["trivial_main"] < figures["trivial_forced_to"]
-    assert figures["cost_A_one_turn_one_retry"] > 0
-    assert figures["cost_B_one_turn_one_retry"] > 0
-
-
-def test_fair_one_turn_one_retry_defaults() -> None:
-    """Same turn/retry knobs; one-shot often has A ≤ B (graph overhead)."""
-    a = cost_A(FAT_C0, T_A=1, N_retries=1)
-    b = cost_B(FAT_C0, T_A=1, N_retries=1)
-    assert a > 0 and b > 0
-
-
-
-def test_compounds_registry() -> None:
-    assert set(COMPOUNDS) == {
-        "debug-compound",
-        "research-build",
-        "decide-then-audit",
-        "verify-then-build",
-    }
-    assert get_compound("research-build")["wiring"] == [
-        "research-swarm",
-        "to-brief",
-        "refine-loop",
-    ]
-    assert "refine-loop" in get_compound("decide-then-audit")["optional"]
 
 
 def test_scope_card_and_urn() -> None:
@@ -58,7 +26,7 @@ def test_scope_card_and_urn() -> None:
         persist="vault",
     )
     assert card["composition"] == "debug-compound"
-    assert card["persist"] == "durable"  # vault alias
+    assert card["persist"] == "durable"
     card2 = build_scope_card(topic="t", goal="g", persist="none")
     assert card2["persist"] == "none"
     urn = make_topology_urn("plane", "auth-refresh--implementation", ulid="01TEST")
@@ -66,8 +34,6 @@ def test_scope_card_and_urn() -> None:
 
 
 def test_workflow_slug_and_paradigm_rules() -> None:
-    from topology_harness.telemetry import NotAtomicError
-
     assert workflow_slug_for("auth-refresh", role="orchestrator") == (
         "auth-refresh--to"
     )
@@ -77,7 +43,8 @@ def test_workflow_slug_and_paradigm_rules() -> None:
     assert paradigm_for_atom("plane-audit") == "plane"
     assert paradigm_for_atom("research-swarm") == "swarm"
     assert paradigm_for_atom("verify-claims") == "cove"
-    # refine-loop is compound wiring, not an atomic paradigm
+    assert paradigm_for_atom("shard") == "shard"
+    assert paradigm_for_atom("parallel-build") == "shard"
     with pytest.raises(NotAtomicError):
         paradigm_for_atom("refine-loop")
     with pytest.raises(NotAtomicError):
@@ -106,16 +73,14 @@ def test_workflow_slug_and_paradigm_rules() -> None:
 
 
 def test_spawn_policy_blocks_main_leaf_for_topic_work() -> None:
-    from topology_harness.spawn_policy import SpawnPolicyError, assert_spawn_policy
-
     with pytest.raises(SpawnPolicyError):
         assert_spawn_policy(
             parent_depth=0,
             role="leaf",
-            topic="agent-topo-audit",
+            topic="harness-audit",
             paradigm="cove",
-            goal="Formalize Trinity paradigms in code and create HANDOFF.md.",
-            open_topics=["agent-topo-audit"],
+            goal="Formalize paradigms in code and create HANDOFF.md.",
+            open_topics=["harness-audit"],
         )
     with pytest.raises(SpawnPolicyError):
         assert_spawn_policy(
@@ -125,7 +90,6 @@ def test_spawn_policy_blocks_main_leaf_for_topic_work() -> None:
             goal="Implement priority codebase fixes",
             open_topics=[],
         )
-    # TO path OK
     assert (
         assert_spawn_policy(
             parent_depth=0,
@@ -136,7 +100,6 @@ def test_spawn_policy_blocks_main_leaf_for_topic_work() -> None:
         )
         == "topic"
     )
-    # TT under TO with atomic OK
     assert (
         assert_spawn_policy(
             parent_depth=1,
@@ -148,7 +111,6 @@ def test_spawn_policy_blocks_main_leaf_for_topic_work() -> None:
         )
         == "plane"
     )
-    # Trivial informal leaf OK
     assert (
         assert_spawn_policy(
             parent_depth=0,
@@ -160,15 +122,15 @@ def test_spawn_policy_blocks_main_leaf_for_topic_work() -> None:
     )
 
 
-def test_vault_policy_and_evidence() -> None:
+def test_durable_memory_and_evidence() -> None:
     assert_can_write("orchestrator")
-    assert_can_write("topic_owner")  # alias
+    assert_can_write("topic_owner")
     with pytest.raises(PermissionError):
         assert_can_write("main")
     with pytest.raises(PermissionError):
         assert_can_write("tt")
     with pytest.raises(PermissionError):
-        assert_can_write("leaf")  # alias → tt
+        assert_can_write("leaf")
     assert CODE_GATES == ("tests", "typecheck", "lint_syntax", "docs")
     assert all_gates_passed({"tests": True, "typecheck": True})
     assert missing_gates({"tests": True}) == ["typecheck", "lint_syntax", "docs"]
@@ -185,16 +147,5 @@ def test_critical_payload() -> None:
     assert payload["channel"] == "host"
     assert payload["command"] == "rm -rf /tmp/x"
     assert payload["status"] == "pending"
-    from topology_harness.escalate import for_host_telegram, for_hermes_telegram
-
     tg = for_host_telegram("rm -rf /tmp/x", "cleanup", "topic-1")
     assert tg["channel"] == "telegram"
-    assert for_hermes_telegram("rm -rf /tmp/x", "cleanup", "topic-1")["channel"] == (
-        "telegram"
-    )
-
-
-def test_docs_templates_live_in_harness() -> None:
-    assert docs_dir().is_dir()
-    text = load_template("compounds")
-    assert "debug-compound" in text

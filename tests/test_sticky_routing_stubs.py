@@ -124,6 +124,13 @@ def test_route_rejects_bad_refan_without_topic() -> None:
         )
 
 
+def test_tt_stub_instruction_anti_convergence() -> None:
+    from topology_harness.stubs import TT_STUB_INSTRUCTION
+
+    assert "do not converge for agreement" in TT_STUB_INSTRUCTION.lower()
+    assert "diverges from the obvious" in TT_STUB_INSTRUCTION.lower()
+
+
 def test_tt_stub_parse_and_brief() -> None:
     stub = parse_tt_stub(
         json.dumps(

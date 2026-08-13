@@ -1,24 +1,22 @@
-"""Pricing, synthetic A/B cost model, and session-tree rollup.
+"""Pricing and synthetic A/B cost model for Compound Topologies.
 
-Synthetic cached Gemini model (Standard paid tier, documented for smoke):
-  p_in    = $1.50 / 1M tokens
-  p_out   = $7.50 / 1M tokens
-  p_cache = $0.15 / 1M tokens  (cached input reads)
+Two synthetic rate sets:
 
-Skill-matrix rates (Flash-only report defaults from cost-analysis.md) are kept
-as ``SKILL_MATRIX_PRICING`` for live session rollups that prefer that table.
+1. **Uniform legacy** (``DEFAULT_RATES``): one Flash-class rate for every call —
+   used only to reproduce the old A/B ratio. Masks role-tier savings.
+2. **Role cast** (``ROLE_RATES_*``): Main / TO / scout / gen priced like
+   ``config/models.yaml`` (2.5-flash-lite / 3-flash / 3.5-lite / 3.6). This is the
+   fair monolith-vs-compound comparison after the cast.
+
+Monolith arm (A) under the cast uses **3-flash** rates — one model does all work.
 """
 from __future__ import annotations
 
-import os
-import sqlite3
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any
 
-# ── Synthetic cached Gemini (A/B smoke) ──────────────────────────────────────
+# ── Synthetic cached Gemini (legacy uniform A/B smoke) ───────────────────────
 
-# USD per 1M tokens
+# USD per 1M tokens — legacy uniform (3.6-class sticker)
 P_IN_PER_M = 1.50
 P_OUT_PER_M = 7.50
 P_CACHE_PER_M = 0.15
@@ -27,29 +25,11 @@ P_IN = P_IN_PER_M / 1_000_000
 P_OUT = P_OUT_PER_M / 1_000_000
 P_CACHE = P_CACHE_PER_M / 1_000_000
 
-# ── Skill matrix (default Flash-class estimates for synthetic smoke) ─────────
-
-SKILL_MATRIX_PRICING: dict[str, dict[str, float]] = {
-    "gemini-3.5-flash": {
-        "in": 0.075 / 1_000_000,
-        "out": 0.30 / 1_000_000,
-    },
-    "gemini-3-flash-preview": {
-        "in": 0.075 / 1_000_000,
-        "out": 0.30 / 1_000_000,
-    },
-    "gemini-2.5-flash": {
-        "in": 0.10 / 1_000_000,
-        "out": 0.40 / 1_000_000,
-    },
-    "default": {
-        "in": 0.10 / 1_000_000,
-        "out": 0.40 / 1_000_000,
-    },
-}
-
-# Back-compat alias used by session_cost wrapper
-PRICING = SKILL_MATRIX_PRICING
+# Role cast — Google/OR working rates used for fair A/B (USD / 1M)
+RATE_3_FLASH = (0.50, 3.00, 0.05)          # TO / monolith baseline
+RATE_3_6_FLASH = (1.50, 7.50, 0.15)        # gen / critiquer
+RATE_3_5_FLASH_LITE = (0.30, 2.50, 0.03)   # scout
+RATE_2_5_FLASH_LITE = (0.10, 0.40, 0.01)   # Main = 2.5-flash-lite
 
 
 @dataclass(frozen=True)
@@ -59,7 +39,37 @@ class SyntheticRates:
     p_cache: float = P_CACHE
 
 
+def rates_from_per_m(in_m: float, out_m: float, cache_m: float | None = None) -> SyntheticRates:
+    """Build SyntheticRates from USD-per-1M prices."""
+    cache = in_m * 0.10 if cache_m is None else cache_m
+    return SyntheticRates(
+        p_in=in_m / 1_000_000,
+        p_out=out_m / 1_000_000,
+        p_cache=cache / 1_000_000,
+    )
+
+
 DEFAULT_RATES = SyntheticRates()
+
+# Fair cast rates (matches config/models.yaml roles)
+MONOLITH_RATES = rates_from_per_m(*RATE_3_FLASH)  # one model does everything
+MAIN_RATES = rates_from_per_m(*RATE_2_5_FLASH_LITE)
+TO_RATES = rates_from_per_m(*RATE_3_FLASH)
+SCOUT_RATES = rates_from_per_m(*RATE_3_5_FLASH_LITE)
+GEN_RATES = rates_from_per_m(*RATE_3_6_FLASH)
+
+
+@dataclass(frozen=True)
+class RoleRateSheet:
+    """Per-role prices for compound (B) under the current cast."""
+
+    main: SyntheticRates = MAIN_RATES
+    topic_owner: SyntheticRates = TO_RATES
+    scout: SyntheticRates = SCOUT_RATES
+    generator: SyntheticRates = GEN_RATES
+
+
+CAST_RATES = RoleRateSheet()
 
 
 def _usd(tokens: float, price_per_token: float) -> float:
@@ -129,6 +139,7 @@ def cost_B(
     T_m_fix: float = 1,
     W_fix_usd: float | None = None,
     rates: SyntheticRates = DEFAULT_RATES,
+    role_rates: RoleRateSheet | None = None,
 ) -> float:
     """Compound Topologies cost (B) — fair one user-turn + N_retries (default 1).
 
@@ -137,40 +148,50 @@ def cost_B(
     Retry: Main re-route on cached C0 + one light worker pass (default priced
     as one scout-equivalent if ``W_fix_usd`` is None).
     ``T_A`` is accepted for API symmetry and ignored.
+
+    When ``role_rates`` is set, Main / TO / scout / gen use that sheet (cast A/B).
+    Otherwise every call uses ``rates`` (legacy uniform).
     """
     del T_A
-    p_in, p_out, p_c = rates.p_in, rates.p_out, rates.p_cache
+    sheet = role_rates
+    r_main = sheet.main if sheet else rates
+    r_to = sheet.topic_owner if sheet else rates
+    r_scout = sheet.scout if sheet else rates
+    r_gen = sheet.generator if sheet else rates
 
-    main_hist = _usd(C0, p_in) + _usd(max(T_m - 1, 0) * C0, p_c)
+    main_hist = _usd(C0, r_main.p_in) + _usd(max(T_m - 1, 0) * C0, r_main.p_cache)
     main = (
         main_hist
-        + _usd(T_m * (S + P), p_in)
-        + _usd(T_m * U, p_out)
+        + _usd(T_m * (S + P), r_main.p_in)
+        + _usd(T_m * U, r_main.p_out)
     )
 
     to_in = T_o * (S + P_o) + T_o * (R_sum + K_sum) / 2
-    to = _usd(to_in, p_in) + _usd(T_o * U, p_out)
+    to = _usd(to_in, r_to.p_in) + _usd(T_o * U, r_to.p_out)
 
     per_scout_in = T_r * (S + P_r) + T_r * (R / max(n_r, 1)) / 2
-    res = n_r * (_usd(per_scout_in, p_in) + _usd(T_r * U, p_out))
+    res = n_r * (_usd(per_scout_in, r_scout.p_in) + _usd(T_r * U, r_scout.p_out))
 
     code_rounds = 1 + L
     code_in = code_rounds * T_g * (S + P_c + K)
-    code = _usd(code_in, p_in) + _usd(code_rounds * T_g * U, p_out)
+    code = _usd(code_in, r_gen.p_in) + _usd(code_rounds * T_g * U, r_gen.p_out)
 
     kg = 0.0
     if P_kg:
-        kg = _usd(S + P_kg, p_in) + _usd(U, p_out)
+        kg = _usd(S + P_kg, r_to.p_in) + _usd(U, r_to.p_out)
 
     first = main + to + res + code + kg
 
     if W_fix_usd is None:
-        W_fix_usd = _usd(S + P_r + R / max(n_r, 1) / 2, p_in) + _usd(U, p_out)
+        W_fix_usd = (
+            _usd(S + P_r + R / max(n_r, 1) / 2, r_scout.p_in)
+            + _usd(U, r_scout.p_out)
+        )
 
     retry_main = N_retries * (
-        _usd(T_m_fix * C0, p_c)
-        + _usd(T_m_fix * (S + P), p_in)
-        + _usd(T_m_fix * U, p_out)
+        _usd(T_m_fix * C0, r_main.p_cache)
+        + _usd(T_m_fix * (S + P), r_main.p_in)
+        + _usd(T_m_fix * U, r_main.p_out)
     )
     retry_workers = N_retries * W_fix_usd
     return first + retry_main + retry_workers
@@ -212,102 +233,3 @@ def cost_forced_topic_owner_trivial(
     )
     to = _usd(T_o * (S + P_o), p_in) + _usd(T_o * U, p_out)
     return main + to
-
-
-# ── Live session tree rollup (from scripts/graph_analysis/session_cost.py) ───
-
-
-def get_db_path() -> Path:
-    """Resolve host session DB for tree rollups.
-
-    Set ``AGENT_TOPO_STATE_DB`` (or legacy ``VIRGIL_HERMES_STATE_DB``) to the
-    host's SQLite path. No default home path is baked into the package.
-    """
-    override = (
-        os.environ.get("AGENT_TOPO_STATE_DB")
-        or os.environ.get("VIRGIL_HERMES_STATE_DB")
-        or os.environ.get("HOST_SESSION_DB")
-    )
-    if override:
-        return Path(override)
-    raise FileNotFoundError(
-        "Set AGENT_TOPO_STATE_DB to your host session database path "
-        "(no default path is shipped in topology-harness)."
-    )
-
-
-def analyze_session_tree(
-    parent_id: str,
-    *,
-    db_path: Path | str | None = None,
-    pricing: dict[str, dict[str, float]] | None = None,
-) -> dict[str, Any]:
-    """Recursively roll up token/cost from a parent session id in a host DB."""
-    try:
-        path = Path(db_path) if db_path is not None else get_db_path()
-    except FileNotFoundError as exc:
-        return {"error": str(exc)}
-    price_table = pricing or SKILL_MATRIX_PRICING
-
-    if not path.exists():
-        return {"error": f"DB not found: {path}"}
-
-    conn = sqlite3.connect(str(path))
-    cursor = conn.cursor()
-
-    all_sessions: list[dict[str, Any]] = []
-    to_process = [parent_id]
-    processed: set[str] = set()
-
-    while to_process:
-        current_id = to_process.pop(0)
-        if current_id in processed:
-            continue
-        processed.add(current_id)
-
-        cursor.execute(
-            "SELECT id, model, input_tokens, output_tokens, estimated_cost_usd, "
-            "parent_session_id FROM sessions WHERE id = ? OR parent_session_id = ?",
-            (current_id, current_id),
-        )
-        rows = cursor.fetchall()
-        for row in rows:
-            sid, model, it, ot, cost, pid = row
-            if any(s["id"] == sid for s in all_sessions):
-                continue
-            if not cost or cost == 0:
-                p = price_table.get(model, price_table["default"])
-                it_n = it or 0
-                ot_n = ot or 0
-                cost = (it_n * p["in"]) + (ot_n * p["out"])
-
-            all_sessions.append(
-                {
-                    "id": sid,
-                    "model": model,
-                    "input": it or 0,
-                    "output": ot or 0,
-                    "cost": cost,
-                    "parent": pid,
-                }
-            )
-            if sid not in processed:
-                to_process.append(sid)
-
-    conn.close()
-
-    total_cost = sum(s["cost"] for s in all_sessions)
-    total_in = sum(s["input"] for s in all_sessions)
-    total_out = sum(s["output"] for s in all_sessions)
-
-    return {
-        "parent_id": parent_id,
-        "total_cost": total_cost,
-        "total_tokens": {"input": total_in, "output": total_out},
-        "agent_count": len(all_sessions),
-        "breakdown": all_sessions,
-    }
-
-
-# Alias matching the historical script name
-analyze_graph = analyze_session_tree

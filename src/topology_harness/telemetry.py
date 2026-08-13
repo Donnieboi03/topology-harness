@@ -8,9 +8,16 @@ from typing import Any, Sequence
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
 
-# Only three atomics get URN paradigm tags. refine-loop / debate / to-brief are
-# compound wiring or roles — not atomic paradigms (use `composition` siblings).
-ATOMIC_PARADIGMS = frozenset({"swarm", "plane", "cove"})
+# Atoms are instances of the generic fan `fan(partition, worker, merge)`,
+# individuated by merge algebra. An atom partitions by content and keeps every
+# output; anything that runs the same task N times and discards some is a
+# combinator. See docs/atom-theory.md.
+#
+#   swarm  union                                plane  conjunction (AND-gate)
+#   cove   per-claim three-valued adjudication  shard  assembly under contract
+#
+# Closed set: fail-closed via `assert_atomic_paradigm` / `paradigm_for_atom`.
+ATOMIC_PARADIGMS = frozenset({"swarm", "plane", "cove", "shard"})
 
 _ATOM_PARADIGM = {
     "research-swarm": "swarm",
@@ -20,9 +27,40 @@ _ATOM_PARADIGM = {
     "planes": "plane",  # legacy URN tag
     "verify-claims": "cove",
     "cove": "cove",
+    "shard": "shard",
+    "build-shard": "shard",
+    "parallel-build": "shard",
 }
 
-# Known non-atomic pattern names — fail closed if used as atomic paradigm tags.
+# Public menu: only `revise`. Private aliases keep fail-closed parsing of older
+# composition payloads that named partition/worker mutations.
+TRANSITIONS = frozenset({"revise"})
+
+_TRANSITION_ALIASES = {
+    "revise": "revise",
+}
+
+# What the public transition mutates (subject). Host introspection / errors.
+TRANSITION_MUTATES = {
+    "revise": "subject",
+}
+
+# Public menu: only `cycle` (wraps an atom; carries state between rounds).
+COMBINATORS = frozenset({"cycle"})
+
+_COMBINATOR_ALIASES = {
+    "cycle": "cycle",
+    "loop": "cycle",
+}
+
+# Private bridge: refine-loop → cycle(plane, revise) for fail-closed composition.
+_LEGACY_PATTERNS: dict[str, dict[str, str]] = {
+    "refine-loop": {"atom": "plane", "combinator": "cycle", "transition": "revise"},
+    "refine": {"atom": "plane", "combinator": "cycle", "transition": "revise"},
+}
+
+# Names that are roles or merge steps, never paradigms in their own right.
+# `to-brief` is the merge operator of whichever atom preceded it, not a step.
 _NON_ATOMIC_PATTERNS = frozenset(
     {
         "refine-loop",
@@ -37,9 +75,21 @@ _NON_ATOMIC_PATTERNS = frozenset(
 
 _ORCH_ROLES = frozenset({"orchestrator", "topic_owner", "to", "moa"})
 
+# Bumped when the composition payload shape changes. v2 adds combinator /
+# transition; v1 runs recorded refine-loop as a bare string in `composition`.
+COMPOSITION_SCHEMA_VERSION = 2
+
 
 class NotAtomicError(ValueError):
     """Raised when a non-atomic pattern is used as an atomic paradigm tag."""
+
+
+class NotATransitionError(ValueError):
+    """Raised when an unknown transition is used in a cycle."""
+
+
+class NotACombinatorError(ValueError):
+    """Raised when an unknown combinator is used to wrap an atom."""
 
 
 def _slug(text: str, *, max_len: int = 80) -> str:
@@ -97,23 +147,65 @@ def composition_field(
     atoms: Sequence[str] | None = None,
     *,
     novel: bool = False,
+    combinator: str | None = None,
+    transition: str | None = None,
 ) -> dict[str, Any]:
-    """Telemetry ``composition`` / ``pattern_composition`` payload."""
+    """Telemetry ``composition`` / ``pattern_composition`` payload.
+
+    ``combinator`` / ``transition`` record a combinator application over the
+    atom in the URN paradigm segment — e.g. a refine loop is
+    ``atom=plane`` + ``combinator=cycle`` + ``transition=revise``. Both are
+    validated fail-closed when set.
+    """
     steps = list(atoms or [])
+    comb = assert_combinator(combinator) if combinator else None
+    trans = assert_transition(transition) if transition else None
+    if trans and comb != "cycle":
+        raise NotACombinatorError(
+            f"transition {trans!r} requires combinator='cycle'; got {comb!r}. "
+            "Only `cycle` carries state between rounds."
+        )
     return {
         "compound_id": compound_id,
         "atoms": steps,
         "novel": novel,
+        "combinator": comb,
+        "transition": trans,
+        "schema_version": COMPOSITION_SCHEMA_VERSION,
         "harness": "topology-harness",
     }
 
 
 def is_atomic(name: str) -> bool:
-    """True if ``name`` is one of the three atomics or a known alias."""
+    """True if ``name`` is one of the four atomics or a known alias."""
     key = (name or "").strip().lower()
     if key in ATOMIC_PARADIGMS:
         return True
     return key in _ATOM_PARADIGM
+
+
+def resolve_legacy_pattern(name: str) -> dict[str, str] | None:
+    """Map a legacy pattern name → ``{atom, combinator, transition}``.
+
+    ``refine-loop`` was never a shape: it is ``cycle(plane, revise)`` where the
+    Critiquer fills the evaluator atom seat and the Generator *is* the
+    transition function. Returns ``None`` for names with no legacy mapping.
+    """
+    key = (name or "").strip().lower()
+    mapped = _LEGACY_PATTERNS.get(key)
+    return dict(mapped) if mapped else None
+
+
+def _legacy_hint(name: str) -> str:
+    """Actionable migration advice for a legacy pattern name."""
+    mapped = resolve_legacy_pattern(name)
+    if not mapped:
+        return ""
+    return (
+        f" {name!r} is {mapped['combinator']}({mapped['atom']}, "
+        f"{mapped['transition']}); pass atom={mapped['atom']!r}, "
+        f"combinator={mapped['combinator']!r}, transition={mapped['transition']!r}."
+    )
 
 
 def paradigm_for_atom(atom: str) -> str:
@@ -122,12 +214,17 @@ def paradigm_for_atom(atom: str) -> str:
     if key in _ATOM_PARADIGM:
         return _ATOM_PARADIGM[key]
     if key in _NON_ATOMIC_PATTERNS or key.startswith("refine"):
+        hint = _legacy_hint(key)
+        if not hint:
+            hint = (
+                " to-brief is the merge operator of the preceding atom, not a"
+                " step; generator/critiquer are roles, not paradigms."
+            )
         raise NotAtomicError(
             f"{atom!r} is not an atomic paradigm; atomics are "
-            f"{sorted(ATOMIC_PARADIGMS)}. Put refine-loop/debate/to-brief in "
-            f"`composition` / compound wiring, not the URN paradigm segment."
+            f"{sorted(ATOMIC_PARADIGMS)}.{hint}"
         )
-    # Novel atom-like tags: only allow if they already resolve to a trinity tag
+    # Novel atom-like tags: only allow if they already resolve to a known atom
     slug = _slug(atom, max_len=32)
     if slug in ATOMIC_PARADIGMS:
         return slug
@@ -137,7 +234,7 @@ def paradigm_for_atom(atom: str) -> str:
 
 
 def assert_atomic_paradigm(paradigm: str) -> str:
-    """Fail closed unless ``paradigm`` is swarm|plane|cove (or alias)."""
+    """Fail closed unless ``paradigm`` is swarm|plane|cove|shard (or alias)."""
     key = (paradigm or "").strip().lower()
     if key in _ATOM_PARADIGM:
         return _ATOM_PARADIGM[key]
@@ -146,6 +243,29 @@ def assert_atomic_paradigm(paradigm: str) -> str:
         return slug
     raise NotAtomicError(
         f"paradigm {paradigm!r} is not atomic; allowed={sorted(ATOMIC_PARADIGMS)}"
+    )
+
+
+def assert_transition(transition: str) -> str:
+    """Fail closed unless ``transition`` is the public menu item ``revise``."""
+    key = (transition or "").strip().lower()
+    resolved = _TRANSITION_ALIASES.get(key)
+    if resolved:
+        return resolved
+    raise NotATransitionError(
+        f"transition {transition!r} is not known; allowed={sorted(TRANSITIONS)} "
+        f"(mutating {TRANSITION_MUTATES['revise']})"
+    )
+
+
+def assert_combinator(combinator: str) -> str:
+    """Fail closed unless ``combinator`` is in the registry (or an alias)."""
+    key = (combinator or "").strip().lower()
+    resolved = _COMBINATOR_ALIASES.get(key)
+    if resolved:
+        return resolved
+    raise NotACombinatorError(
+        f"combinator {combinator!r} is not known; allowed={sorted(COMBINATORS)}"
     )
 
 
@@ -176,9 +296,14 @@ def resolve_paradigm(
             return assert_atomic_paradigm(paradigm)
         except NotAtomicError:
             # Named freeform compound tags allowed via paradigm only when they
-            # are not known non-atomic pattern names.
+            # are not known non-atomic pattern names. The URN paradigm segment
+            # carries the *atom*; a combinator application records the atom here
+            # and rides `combinator` / `transition` as siblings.
             if raw in _NON_ATOMIC_PATTERNS or raw.startswith("refine"):
-                raise
+                raise NotAtomicError(
+                    f"paradigm {paradigm!r} is not atomic; allowed="
+                    f"{sorted(ATOMIC_PARADIGMS)}.{_legacy_hint(raw)}"
+                ) from None
             return _slug(paradigm, max_len=32)
     if isinstance(atom, str) and atom.strip():
         return paradigm_for_atom(atom)
@@ -211,8 +336,15 @@ def sibling_telemetry_fields(
     durable_writer: str | None = None,
     persist: str | None = None,
     parent_run_id: str | None = None,
+    combinator: str | None = None,
+    transition: str | None = None,
 ) -> dict[str, Any]:
-    """Sibling fields that must NOT be stuffed into the topology URN."""
+    """Sibling fields that must NOT be stuffed into the topology URN.
+
+    ``combinator`` / ``transition`` ride here rather than in the URN because a
+    combinator is a *modifier on an atom tag*, not a parallel tag namespace —
+    every pre-existing URN stays valid.
+    """
     cp = control_plane or (control_plane_for_role(role) if role else None)
     persist_n = (persist or "").strip().lower() or None
     if persist_n == "vault":
@@ -231,4 +363,8 @@ def sibling_telemetry_fields(
     }
     if persist_n is not None:
         out["persist"] = persist_n
+    if combinator is not None:
+        out["combinator"] = assert_combinator(combinator)
+    if transition is not None:
+        out["transition"] = assert_transition(transition)
     return out

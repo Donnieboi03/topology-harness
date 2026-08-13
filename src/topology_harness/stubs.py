@@ -25,11 +25,9 @@ JSON shape:
 }
 
 Rules: max 5 bullets; no greetings; no "Next Step" essays; facts/citations only.
+Report your lane's angle even when it diverges from the obvious/majority reading; do not converge for agreement.
 The TO will merge stubs into the brief and speak to the user.
 """
-
-# Back-compat alias
-LEAF_STUB_INSTRUCTION = TT_STUB_INSTRUCTION
 
 
 @dataclass
@@ -47,10 +45,6 @@ class TTStub:
         return json.dumps(self.to_dict(), ensure_ascii=False)
 
 
-# Back-compat alias
-LeafStub = TTStub
-
-
 def format_tt_stub(
     lane: str,
     *,
@@ -66,9 +60,6 @@ def format_tt_stub(
         open=[o.strip() for o in (open_items or []) if o.strip()][:5],
         confidence=confidence if confidence in {"low", "medium", "high"} else "medium",
     )
-
-
-format_leaf_stub = format_tt_stub
 
 
 def parse_tt_stub(text: str, *, default_lane: str = "unknown") -> TTStub:
@@ -105,9 +96,6 @@ def parse_tt_stub(text: str, *, default_lane: str = "unknown") -> TTStub:
         if len(lines) >= 5:
             break
     return TTStub(lane=default_lane, bullets=lines, confidence="medium")
-
-
-parse_leaf_stub = parse_tt_stub
 
 
 def stubs_to_brief_findings(stubs: list[TTStub]) -> str:

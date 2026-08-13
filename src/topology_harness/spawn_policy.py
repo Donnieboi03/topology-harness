@@ -22,8 +22,10 @@ _LEAF = frozenset({"leaf", "tt", ""})
 _SUBSTANTIVE_RE = re.compile(
     r"\b("
     r"implement|formalize|refactor|rewrite|fix|patch|commit|"
-    r"audit|compound|topology|orchestrat|swarm|plane|cove|"
+    r"audit|compound|topology|orchestrat|swarm|plane|cove|shard|"
     r"generator|critiqu|refine-loop|research-swarm|plane-audit|"
+    r"parallel-build|build-shard|"
+    r"cycle|revise|re-scope|rescope|swap|"
     r"verify-claims|handoff|registry|sticky"
     r")\b",
     re.I,
@@ -99,6 +101,8 @@ def assert_spawn_policy(
             "plane-audit",
             "planes",
             "verify-claims",
+            "build-shard",
+            "parallel-build",
         }:
             atomic_paradigm = True
 
