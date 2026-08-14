@@ -265,16 +265,13 @@ Hosts must wrap every durable-store write. Prefer `persist: durable` (alias
 | Doc | Topic |
 | :--- | :--- |
 | [SKILL.md](SKILL.md) | Agent-facing overview + checklist |
-| [docs/README.md](docs/README.md) | Full doctrine index |
+| [docs/README.md](docs/README.md) | Full doctrine index (hot / operational / optional deep) |
 | [docs/agent-topologies.md](docs/agent-topologies.md) | Atoms + combinators (pattern library) |
-| [docs/atom-theory.md](docs/atom-theory.md) | Why these primitives — merge algebras, graph classification, star optimality |
 | [docs/compounds.md](docs/compounds.md) | Named compounds |
-| [docs/sticky-registry.md](docs/sticky-registry.md) | Sticky TO/TT registry |
-| [docs/intent-routing.md](docs/intent-routing.md) | Route actions |
-| [docs/graph_telemetry.md](docs/graph_telemetry.md) | URN + siblings |
-| [docs/evidence-gates.md](docs/evidence-gates.md) | Hard exits for `cycle(plane, revise)` |
-| [docs/durable-memory.md](docs/durable-memory.md) | Optional persist |
+| [docs/host-contracts.md](docs/host-contracts.md) | Host sticky + retire contracts |
 | [install.md](install.md) | Host wiring |
+
+Optional deep: [docs/atom-theory.md](docs/atom-theory.md).
 
 ---
 

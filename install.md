@@ -67,7 +67,7 @@ Hosts copy or generate equivalent config; do not commit API keys here.
 
 | Role | Model |
 | :--- | :--- |
-| Main | `google/gemini-2.5-flash-lite` |
+| Main | `google/gemini-3.1-flash-lite` |
 | TO | `google/gemini-3-flash-preview` |
 | `swarm` / `plane` | `google/gemini-3.5-flash-lite` |
 | `cove` | `google/gemini-3.1-flash-lite` |

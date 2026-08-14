@@ -1,8 +1,12 @@
 # Optional measurement helpers
 
-Optional A/B helpers for hosts that want to **measure** spend.
-Not part of Compound Topologies doctrine — control-plane value is isolation,
-sticky resume, scoped tools, and evidence gates.
+Optional **synthetic** A/B helpers for hosts that want to **measure** cast
+math offline. Not live session accounting.
+
+**Live spend** is host-owned: Hermes session DB (`estimated_cost_usd`,
+`parent_session_id` tree) plus sticky `topology_urn` join. On Virgil that is
+`scripts/graph_analysis/session_cost.py` and/or `hermes insights`. Do not
+expect this package to open Hermes SQLite.
 
 | Helper | Role |
 | :--- | :--- |
@@ -10,13 +14,7 @@ sticky resume, scoped tools, and evidence gates.
 | `python -m topology_harness.cost_smoke` | Sanity check Main-only vs forced-TO on trivia |
 
 Example cast rates align with [config/models.yaml](../config/models.yaml):
-Main `google/gemini-2.5-flash-lite`, TO `google/gemini-3-flash-preview`, atoms
+Main `google/gemini-3.1-flash-lite`, TO `google/gemini-3-flash-preview`, atoms
 as in that file.
 
-Host session DB (when doing host-side rollups outside this package):
-
-```bash
-export TOPOLOGY_HARNESS_STATE_DB=/path/to/host/sessions.db
-```
-
-Do not mix matrices across hosts.
+Do not mix pricing matrices across hosts.

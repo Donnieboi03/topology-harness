@@ -10,6 +10,7 @@ Start with the [README](../README.md) for purpose and utilization.
 | :--- | :--- |
 | [agent-topologies.md](agent-topologies.md) | Atoms + combinators + Main / TO / TT |
 | [compounds.md](compounds.md) | Named compound recipes (prefer these) |
+| [host-contracts.md](host-contracts.md) | Cursor ↔ Hermes sticky + retire contracts |
 
 **Public surface:** atoms `swarm|plane|cove|shard`; combinator `cycle`;
 transition `revise`. The public menu is the registry.
@@ -25,19 +26,16 @@ transition `revise`. The public menu is the registry.
 | [scope-and-tooling-card.md](scope-and-tooling-card.md) | Main→TO envelope |
 | [evidence-gates.md](evidence-gates.md) | Hard exit criteria |
 | [critical-escalation.md](critical-escalation.md) | TT→TO→Main→host |
-| [durable-memory.md](durable-memory.md) | Optional persist (TO writes) + blackboard retire-flush |
-| [host-contracts.md](host-contracts.md) | Cursor ↔ Hermes sticky + retire contracts |
-| [vault-write-policy.md](vault-write-policy.md) | Persist write gate (host maps backend) |
+| [durable-memory.md](durable-memory.md) | Optional persist (TO writes) + blackboard |
 | [graph_telemetry.md](graph_telemetry.md) | URN + sibling telemetry (`schema_version=2`) |
 | [adapters/cursor.md](adapters/cursor.md) | Cursor as host (Main/TO/TT → chat + Task) |
+| [cost-analysis.md](cost-analysis.md) | Optional A-B measurement helpers |
 
-## Theory / notes
+## Optional deep
 
 | Doc | Topic |
 | :--- | :--- |
 | [atom-theory.md](atom-theory.md) | Why these primitives (§§1–2 + summary; §§3–5 deep ref) |
-| [handoff-atom-taxonomy.md](handoff-atom-taxonomy.md) | Compact taxonomy card |
-| [cost-analysis.md](cost-analysis.md) | Optional A-B measurement helpers |
 
 Also: [../SKILL.md](../SKILL.md), [../install.md](../install.md),
 [../HANDOFF.md](../HANDOFF.md) (spawn-policy handoff).

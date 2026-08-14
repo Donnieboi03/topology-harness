@@ -56,8 +56,9 @@ transform stubs into gated brief conclusions first.
 
 ## Host mapping
 
-The host maps `persist: durable` to its backend (files, DB, vault). See also
-[vault-write-policy.md](vault-write-policy.md) and
+Compound Topologies do not assume every agent has a durable store —
+`persist: durable` is optional. The host maps it to a concrete backend
+(files, DB, vault). Gate: `assert_can_write`. See
 [host-contracts.md](host-contracts.md).
 
 **Recommendation:** Topic work that should compound in durable memory should

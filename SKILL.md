@@ -72,7 +72,7 @@ Main may hint `composition:`; TO owns final wiring.
 
 ## Models (example)
 
-[config/models.yaml](config/models.yaml): Main `google/gemini-2.5-flash-lite`;
+[config/models.yaml](config/models.yaml): Main `google/gemini-3.1-flash-lite`;
 TO `google/gemini-3-flash-preview`; atom defaults per that file.
 
 ## Host glue
@@ -85,16 +85,10 @@ Host-owned: nest depth/role, hooks, prefill, durable-store mappings. See
 | Doc | Topic |
 | :--- | :--- |
 | [docs/agent-topologies.md](docs/agent-topologies.md) | Atoms + combinators + control plane |
-| [docs/atom-theory.md](docs/atom-theory.md) | Why these primitives (merge algebras, star optimality) |
 | [docs/compounds.md](docs/compounds.md) | Named compounds |
-| [docs/sticky-registry.md](docs/sticky-registry.md) | Sticky TO/TT registry |
-| [docs/intent-routing.md](docs/intent-routing.md) | Route actions |
-| [docs/tt-stubs.md](docs/tt-stubs.md) | TT stub → TO brief |
-| [docs/scope-and-tooling-card.md](docs/scope-and-tooling-card.md) | Main→TO envelope |
-| [docs/evidence-gates.md](docs/evidence-gates.md) | Hard exits |
-| [docs/critical-escalation.md](docs/critical-escalation.md) | TT→TO→Main→host |
-| [docs/durable-memory.md](docs/durable-memory.md) | Optional persist |
-| [docs/graph_telemetry.md](docs/graph_telemetry.md) | URN + siblings |
+| [docs/host-contracts.md](docs/host-contracts.md) | Host sticky + retire contracts |
+
+Operational cards + optional deep theory: [docs/README.md](docs/README.md).
 
 ## Checklist
 
@@ -104,6 +98,8 @@ Host-owned: nest depth/role, hooks, prefill, durable-store mappings. See
 - [ ] Every spawn calls `assert_spawn_policy` (blocks Main→leaf for topic/substantive/atomic work)
 - [ ] Spawn helpers use `topo_gate(registry)` / `assert_topic_open`
 - [ ] After parsing routes, call `coerce_route_with_registry(..., open_topics=reg.open_topics())`
+- [ ] After sticky load: `purge_idle()`; Main card uses `topics_for_main(limit=1)`
+- [ ] Explicit done: `retire_topic` then `release_topic` (idle TTL = release only)
 - [ ] Atom URN paradigms only: `swarm` | `plane` | `cove` | `shard` (`NotAtomicError` otherwise)
 - [ ] Cycles use `combinator=cycle` + `transition=revise`
 - [ ] Prefer named compounds over ad-hoc wiring when a recipe fits

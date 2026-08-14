@@ -33,7 +33,7 @@ def test_assert_allowed_rejects_unknown():
 
 
 def test_role_model_control_plane_only():
-    assert role_model("main") == "google/gemini-2.5-flash-lite"
+    assert role_model("main") == "google/gemini-3.1-flash-lite"
     assert role_model("TO") == role_model("topic_owner")
     assert role_model("orchestrator") == "google/gemini-3-flash-preview"
 
@@ -79,15 +79,16 @@ def test_resolve_child_model_priority():
 
 def test_host_model_block_main_down_only_ladder():
     block = host_model_block()
-    assert block["model"]["default"] == "google/gemini-2.5-flash-lite"
+    assert block["model"]["default"] == "google/gemini-3.1-flash-lite"
     assert block["delegation"]["model"] == "google/gemini-3-flash-preview"
     models = [f["model"] for f in block["fallback_providers"]]
-    # Main starts at 2.5-lite → must NOT try anything above it on the ladder
+    # Main starts at 3.1-lite → must NOT try anything above it on the ladder
     assert "google/gemini-3.6-flash" not in models
     assert "google/gemini-3.5-flash" not in models
+    assert "google/gemini-3-flash-preview" not in models
+    assert "google/gemini-3.5-flash-lite" not in models
     assert "google/gemini-3.1-flash-lite" not in models
-    assert "google/gemini-2.5-flash" not in models
-    assert models[0] in {"anthropic/claude-3.5-haiku", "openai/gpt-4.1-mini"}
+    assert models[0] == "google/gemini-2.5-flash"
     assert block["atoms"]["shard"] == "google/gemini-3.6-flash"
     # Secondary must be allowlisted (normalized); still subject to down-only.
     secondary_models = [

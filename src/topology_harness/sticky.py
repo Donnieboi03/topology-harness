@@ -1,15 +1,19 @@
 """Host-agnostic sticky TO / TT registry.
 
 Compound Topologies assume one TO handle per topic and one TT
-handle per ``(topic, lane)`` until the host chat session ends (or Main /
-TO releases).
+handle per ``(topic, lane)`` until release, idle TTL, or host session end.
 
-This module is the portable registry. Hosts store ``session_id`` (or any
-opaque handle) on each entry and map it to their spawn/resume primitive.
+Sticky is a **short-lived resume map** (session ids + compact meta) — not a
+knowledge archive. Durable knowledge belongs on the blackboard / KG via
+``retire_topic``. Idle topics are ``release``-only (never auto-retire).
+
+TTL: ``STICKY_IDLE_TTL_SECONDS`` (default 24h). Clock refreshes on **TO touch**
+(create/resume TO, TO bind_session, TT under topic touching parent TO).
 """
 from __future__ import annotations
 
 import json
+import os
 import threading
 import time
 from dataclasses import asdict, dataclass, field
@@ -30,6 +34,23 @@ STICKY_PERSIST_KEYS: tuple[str, ...] = (
     "tos",  # legacy
     "leaves",  # legacy
 )
+
+# Default idle TTL: 24h without TO touch → release (no retire).
+_DEFAULT_IDLE_TTL = 24 * 3600
+
+
+def sticky_idle_ttl_seconds() -> float:
+    """Idle TTL in seconds (env ``TOPOLOGY_HARNESS_STICKY_IDLE_TTL`` overrides)."""
+    raw = (os.environ.get("TOPOLOGY_HARNESS_STICKY_IDLE_TTL") or "").strip()
+    if raw:
+        try:
+            return max(0.0, float(raw))
+        except ValueError:
+            pass
+    return float(_DEFAULT_IDLE_TTL)
+
+
+STICKY_IDLE_TTL_SECONDS: float = sticky_idle_ttl_seconds()
 
 # Persistence aliases accepted on load
 _KIND_ALIASES = {
@@ -52,6 +73,8 @@ class StickyHandle:
     topology_urn: str | None = None
     composition: Any = None
     parent_run_id: str | None = None
+    # Unix time of last TO touch (idle TTL measured from this on the TO)
+    touched_at: float | None = None
 
     @property
     def key(self) -> str:
@@ -63,16 +86,18 @@ class StickyHandle:
 class StickyRegistry:
     """In-memory sticky map; optional JSON persistence for host adapters."""
 
-    def __init__(self, *, host_session_id: str | None = None, hermes_session_id: str | None = None) -> None:
+    def __init__(
+        self, *, host_session_id: str | None = None, hermes_session_id: str | None = None
+    ) -> None:
         # hermes_session_id kept as keyword alias for older call sites
         self.host_session_id = host_session_id or hermes_session_id
         self._orchestrators: dict[str, StickyHandle] = {}
         self._tts: dict[tuple[str, str], StickyHandle] = {}
-        
+
         # Per-topic locking
         self._global_lock = threading.Lock()
         self._topic_locks: dict[str, threading.RLock] = {}
-        
+
         # Background save state
         self._save_thread: threading.Thread | None = None
         self._save_path: Path | None = None
@@ -96,6 +121,25 @@ class StickyRegistry:
     def hermes_session_id(self, value: str | None) -> None:
         self.host_session_id = value
 
+    def _bump_to_touched(self, topic: str, *, now: float | None = None) -> None:
+        """Refresh parent TO ``touched_at`` (caller must hold topic lock)."""
+        t = _norm_topic(topic)
+        handle = self._orchestrators.get(t)
+        if handle is None:
+            return
+        handle.touched_at = float(now if now is not None else time.time())
+
+    def touch_topic(self, topic: str) -> StickyHandle | None:
+        """Bump TO ``touched_at`` for hosts that resume outside get_or_create."""
+        t = _norm_topic(topic)
+        with self._get_topic_lock(t):
+            handle = self._orchestrators.get(t)
+            if handle is None:
+                return None
+            handle.touched_at = time.time()
+            self._trigger_save()
+            return handle
+
     def get_orchestrator(self, topic: str) -> StickyHandle | None:
         with self._get_topic_lock(topic):
             return self._orchestrators.get(_norm_topic(topic))
@@ -117,8 +161,9 @@ class StickyRegistry:
         composition: Any = None,
         parent_run_id: str | None = None,
     ) -> tuple[StickyHandle, bool]:
-        """Return (handle, created)."""
+        """Return (handle, created). Create or resume always refreshes ``touched_at``."""
         t = _norm_topic(topic)
+        now = time.time()
         with self._get_topic_lock(t):
             existing = self._orchestrators.get(t)
             if existing is not None:
@@ -132,6 +177,7 @@ class StickyRegistry:
                     composition=composition,
                     parent_run_id=parent_run_id,
                 )
+                existing.touched_at = now
                 self._trigger_save()
                 return existing, False
             handle = StickyHandle(
@@ -142,6 +188,7 @@ class StickyRegistry:
                 topology_urn=topology_urn,
                 composition=composition,
                 parent_run_id=parent_run_id,
+                touched_at=now,
             )
             self._orchestrators[t] = handle
             self._trigger_save()
@@ -163,6 +210,7 @@ class StickyRegistry:
         t = _norm_topic(topic)
         lane_n = _norm_lane(lane)
         key = (t, lane_n)
+        now = time.time()
         with self._get_topic_lock(t):
             existing = self._tts.get(key)
             if existing is not None:
@@ -176,6 +224,9 @@ class StickyRegistry:
                     composition=composition,
                     parent_run_id=parent_run_id,
                 )
+                # Active compound: refresh parent TO so mid-flight work does not expire.
+                self._bump_to_touched(t, now=now)
+                existing.touched_at = now
                 self._trigger_save()
                 return existing, False
             handle = StickyHandle(
@@ -187,8 +238,10 @@ class StickyRegistry:
                 topology_urn=topology_urn,
                 composition=composition,
                 parent_run_id=parent_run_id,
+                touched_at=now,
             )
             self._tts[key] = handle
+            self._bump_to_touched(t, now=now)
             self._trigger_save()
             return handle, True
 
@@ -209,6 +262,10 @@ class StickyRegistry:
                 composition=composition,
                 parent_run_id=parent_run_id,
             )
+            now = time.time()
+            handle.touched_at = now
+            if handle.kind != "orchestrator":
+                self._bump_to_touched(handle.topic, now=now)
             self._trigger_save()
             return handle
 
@@ -281,14 +338,55 @@ class StickyRegistry:
 
     def release_all(self) -> None:
         with self._global_lock:
-            # Simple global clear for release_all to avoid complex multi-locking
             self._orchestrators.clear()
             self._tts.clear()
             self._trigger_save()
 
-    def open_topics(self) -> list[str]:
+    def open_topics(
+        self,
+        *,
+        limit: int | None = None,
+        recently_touched: bool = False,
+    ) -> list[str]:
         with self._global_lock:
-            return sorted(self._orchestrators)
+            if recently_touched:
+                items = sorted(
+                    self._orchestrators.items(),
+                    key=lambda kv: float(kv[1].touched_at or 0.0),
+                    reverse=True,
+                )
+                topics = [t for t, _ in items]
+            else:
+                topics = sorted(self._orchestrators)
+            if limit is not None:
+                return topics[: max(0, int(limit))]
+            return topics
+
+    def topics_for_main(self, limit: int = 1) -> list[str]:
+        """Topics to inject into Main's sticky card (default: one most recent)."""
+        return self.open_topics(limit=limit, recently_touched=True)
+
+    def purge_idle(
+        self,
+        ttl_seconds: float | None = None,
+        *,
+        now: float | None = None,
+    ) -> list[str]:
+        """Release topics whose TO ``touched_at`` is older than TTL.
+
+        Missing ``touched_at`` is treated as stale. Does **not** call retire.
+        """
+        ttl = sticky_idle_ttl_seconds() if ttl_seconds is None else float(ttl_seconds)
+        ts = float(now if now is not None else time.time())
+        with self._global_lock:
+            candidates = list(self._orchestrators.items())
+        released: list[str] = []
+        for topic, handle in candidates:
+            touched = handle.touched_at
+            if touched is None or (ts - float(touched)) >= ttl:
+                self.release_topic(topic)
+                released.append(topic)
+        return sorted(released)
 
     def lanes_for(self, topic: str) -> list[str]:
         t = _norm_topic(topic)
@@ -319,9 +417,9 @@ class StickyRegistry:
     def _start_save_thread(self) -> None:
         self._save_shutdown = False
         self._save_thread = threading.Thread(
-            target=self._save_loop, 
+            target=self._save_loop,
             name="StickyRegistrySave",
-            daemon=True
+            daemon=True,
         )
         self._save_thread.start()
 
@@ -330,8 +428,6 @@ class StickyRegistry:
             if self._save_pending.wait(timeout=self._save_interval):
                 self._save_pending.clear()
                 self._perform_save()
-            else:
-                pass
 
     def _perform_save(self) -> None:
         if not self._save_path:
@@ -430,14 +526,18 @@ def _handle_from_dict(raw: dict[str, Any]) -> StickyHandle:
     if kind not in {"orchestrator", "tt"}:
         kind = "tt"
     meta = dict(raw.get("meta") or {})
-    # Prefer first-class fields; fall back to meta keys from older writers.
     topology_urn = raw.get("topology_urn") or meta.get("topology_urn")
     composition = (
-        raw["composition"]
-        if "composition" in raw
-        else meta.get("composition")
+        raw["composition"] if "composition" in raw else meta.get("composition")
     )
     parent_run_id = raw.get("parent_run_id") or meta.get("parent_run_id")
+    touched_raw = raw.get("touched_at")
+    if touched_raw is None:
+        touched_raw = meta.get("touched_at")
+    try:
+        touched_at = float(touched_raw) if touched_raw is not None else None
+    except (TypeError, ValueError):
+        touched_at = None
     return StickyHandle(
         kind=kind,  # type: ignore[arg-type]
         topic=str(raw.get("topic") or ""),
@@ -447,4 +547,5 @@ def _handle_from_dict(raw: dict[str, Any]) -> StickyHandle:
         topology_urn=str(topology_urn) if topology_urn else None,
         composition=composition,
         parent_run_id=str(parent_run_id) if parent_run_id else None,
+        touched_at=touched_at,
     )

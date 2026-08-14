@@ -55,3 +55,4 @@ def test_config_path_env_override(tmp_path: Path, monkeypatch) -> None:
     # restore default resolution
     assert "TOPOLOGY_HARNESS_MODELS" not in os.environ
     assert config_path().name == "models.yaml"
+    assert load_models_config()["preference"]["model"] == "google/gemini-3.1-flash-lite"

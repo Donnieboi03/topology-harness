@@ -54,11 +54,13 @@ Main
 
 Hard rules
 - Main gates TOs; follow-ups default to_only (sticky resume), not auto re-fan
+- Sticky is ephemeral (24h TO-touch idle TTL / session-end release) — not a KG archive
+- Main card: topics_for_main(limit=1); coerce uses live open_topics after purge_idle
 - Main→leaf blocked for sticky-open / substantive / atomic work (assert_spawn_policy)
 - Public menu — atoms ONLY: swarm | plane | cove | shard (NotAtomicError otherwise)
 - Public combinator: cycle only; public transition: revise only
 - Prefer named compounds (five recipes; topology-harness compounds)
-- Durable writes: assert_can_write — TO only (Main/TT blocked)
+- Durable writes: assert_can_write — TO only (Main/TT blocked); retire ≠ release
 - Spawn TT under TO: assert_topic_open / topo_gate
 - After parse: coerce_route_with_registry(... open_topics=reg.open_topics())
 - TTs emit TT_STUB_INSTRUCTION stubs; TO merges / speaks to the user
@@ -78,6 +80,7 @@ TT    = Task explore|generalPurpose|shell — one lens/atom; stubs only
 
 Route autonomously: main_only | open_topic | to_only | lens_resume | full_refan
 Sticky file: .cursor/topology-sticky/registry.json  (StickyRegistry)
+Sticky is ephemeral (purge_idle 24h / release_all on session end); Main sees topics_for_main(1)
 TT prompts: include TT_STUB_INSTRUCTION
 Main must not fan informal leaf Tasks for substantive/sticky work — open TO first
 

@@ -41,13 +41,17 @@ Helpers: `topology_harness.routing` (`RouteDecision`, `parse_route_decision`,
 After parse/validate, hosts should:
 
 ```python
+reg.purge_idle()  # drop idle sticky (24h TO-touch TTL); no retire
 decision = coerce_route_with_registry(
     parse_route_decision(raw),
-    open_topics=registry.open_topics(),
+    open_topics=registry.open_topics(),  # full live set after purge
 )
+# Main prompt card: registry.topics_for_main(limit=1) — keep the cheap Main thin
 ```
 
 This fails-soft: if Main emits `open_topic` for an already-sticky topic, it becomes
-`to_only` (no cold re-open).
+`to_only` (no cold re-open). Idle / session-end releases sticky so Main's open
+set does not grow without bound; later work re-`open_topic` and rehydrates from
+blackboard / KG when needed.
 
 See also [sticky-registry.md](sticky-registry.md), [tt-stubs.md](tt-stubs.md).

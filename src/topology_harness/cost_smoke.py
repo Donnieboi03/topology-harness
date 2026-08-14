@@ -3,7 +3,7 @@
 Fair baseline: one user-turn of heavy work + one retry for BOTH arms.
 
 * **legacy_uniform** — every call at $1.50/$7.50
-* **cast_tiered** — monolith A at 3-flash; B uses Main 2.5-flash-lite /
+* **cast_tiered** — monolith A at 3-flash; B uses Main 3.1-flash-lite /
   TO 3-flash / scout 3.5-lite / gen 3.6
 
 Hard asserts live in ``tests/``; this module computes + prints for CLI/doctor.

@@ -33,7 +33,7 @@ from .cost import (
     cost_B,
 )
 from .decorators import TopicNotOpenError, assert_topic_open, topo_gate
-from .durable_memory import assert_can_write, write_allowed
+from .durable_memory import assert_can_write, guarded_write, write_allowed
 from .escalate import (
     build_critical_approval_payload,
     for_host_channel,
@@ -72,8 +72,10 @@ from .scope import build_scope_card
 from .spawn_policy import SpawnPolicyError, assert_spawn_policy
 from .sticky import (
     STICKY_HANDLE_KINDS,
+    STICKY_IDLE_TTL_SECONDS,
     STICKY_PERSIST_KEYS,
     StickyRegistry,
+    sticky_idle_ttl_seconds,
     sticky_path_for_session,
 )
 from .stubs import (
@@ -127,6 +129,7 @@ __all__ = [
     "SET_LIKE_REGIONS",
     "SHARD_GATES",
     "STICKY_HANDLE_KINDS",
+    "STICKY_IDLE_TTL_SECONDS",
     "STICKY_PERSIST_KEYS",
     "SpawnPolicyError",
     "StallPolicy",
@@ -161,6 +164,7 @@ __all__ = [
     "for_host_telegram",
     "gates_for",
     "get_compound",
+    "guarded_write",
     "host_model_block",
     "is_atomic",
     "is_request_satisfied",
@@ -180,6 +184,7 @@ __all__ = [
     "role_model",
     "should_fan_scouts",
     "sibling_telemetry_fields",
+    "sticky_idle_ttl_seconds",
     "sticky_path_for_session",
     "stubs_to_brief_findings",
     "topo_gate",

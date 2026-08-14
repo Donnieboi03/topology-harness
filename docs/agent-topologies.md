@@ -15,14 +15,20 @@ The **public menu is the registry**. Teach and wire only these:
 | **Transition** | `revise` only |
 | **Compounds** | Prefer the five named recipes in [compounds.md](compounds.md) |
 
+**Closed primitives, open composition.** Fail-closed atom / combinator /
+transition sets; freeform DAG wiring over them (nodes = atoms or
+`cycle`-wrapped atoms). Prefer named compounds.
+`composition_field()` carries `combinator` / `transition` under
+`schema_version = 2`; URN paradigm = atom only.
+
 An **atom** is an instance of the generic fan `fan(partition, worker, merge)`,
 individuated by its **merge algebra**. The rule that decides membership:
 
 > An atom partitions by content and keeps every output. Anything that runs the
 > same task N times and discards some is a **combinator**.
 
-Why each atom is distinct — and why the star shape is near-optimal in the first
-place — is in [atom-theory.md](atom-theory.md).
+Optional deep rationale (merge algebras, star optimality):
+[atom-theory.md](atom-theory.md).
 
 ## Control plane (who spawns whom)
 
@@ -45,23 +51,30 @@ Main (talking agent)
   Directional split (scouts/planes) = lenses of the same topic; unrelated work
   → another TO.
 
-### Sticky TTs (reuse — session-scoped)
+### Sticky TTs (reuse — ephemeral resume map)
 
-Workers stay alive until the host session ends (or Main/TO releases a
-topic). Tear-down-after-done forces cold respawn.
+Sticky is **not** a knowledge archive (blackboard / KG is). Handles are a
+short-lived resume map so Main stays a thin router.
+
+Workers may be reused until: Main/TO **`release_topic`**, **idle TTL** (default
+24h without TO touch — `purge_idle`, release only, no auto-retire), or **host
+session end** (`release_all`). Tear-down-after-done forces cold respawn;
+later work re-`open_topic` and rehydrates from BB/KG when needed.
 
 Until release:
 - Prefer **reusing the same TT session** for that role/lane.
 - Same for TOs: **one handle per topic**; follow-ups resume it.
-- **Registry:** [`StickyRegistry`](sticky-registry.md).
+- **Main card:** `topics_for_main(limit=1)` — do not inject the full open set.
+- **Registry:** [`StickyRegistry`](sticky-registry.md) (TTL + retire≠release).
 - **Follow-ups:** [intent routing](intent-routing.md) — default `to_only`
   (`coerce_route_with_registry` fails-soft coerces re-`open_topic`).
 - **TT outputs:** [tt stubs](tt-stubs.md) — short findings; TO writes
   the brief / user answer.
 - **Topic must be open:** `topo_gate(registry)` / `assert_topic_open`.
 
-This is **hygiene** (avoid thrash) — sticky resume and scoped tools, not a
-latency or spend guarantee. See [sticky-registry.md](sticky-registry.md).
+This is **hygiene** (avoid thrash + avoid Main route bloat) — sticky resume
+and scoped tools, not a latency or spend guarantee. See
+[sticky-registry.md](sticky-registry.md).
 
 | Lane | Sticky unit | Reuse when |
 | :--- | :--- | :--- |

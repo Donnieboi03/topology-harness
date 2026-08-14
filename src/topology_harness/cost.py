@@ -5,7 +5,7 @@ Two synthetic rate sets:
 1. **Uniform legacy** (``DEFAULT_RATES``): one Flash-class rate for every call —
    used only to reproduce the old A/B ratio. Masks role-tier savings.
 2. **Role cast** (``ROLE_RATES_*``): Main / TO / scout / gen priced like
-   ``config/models.yaml`` (2.5-flash-lite / 3-flash / 3.5-lite / 3.6). This is the
+   ``config/models.yaml`` (3.1-flash-lite / 3-flash / 3.5-lite / 3.6). This is the
    fair monolith-vs-compound comparison after the cast.
 
 Monolith arm (A) under the cast uses **3-flash** rates — one model does all work.
@@ -29,7 +29,8 @@ P_CACHE = P_CACHE_PER_M / 1_000_000
 RATE_3_FLASH = (0.50, 3.00, 0.05)          # TO / monolith baseline
 RATE_3_6_FLASH = (1.50, 7.50, 0.15)        # gen / critiquer
 RATE_3_5_FLASH_LITE = (0.30, 2.50, 0.03)   # scout
-RATE_2_5_FLASH_LITE = (0.10, 0.40, 0.01)   # Main = 2.5-flash-lite
+RATE_3_1_FLASH_LITE = (0.25, 1.50, 0.025)  # Main / cove
+RATE_2_5_FLASH_LITE = (0.10, 0.40, 0.01)   # cheapest lite (ladder bottom)
 
 
 @dataclass(frozen=True)
@@ -53,7 +54,7 @@ DEFAULT_RATES = SyntheticRates()
 
 # Fair cast rates (matches config/models.yaml roles)
 MONOLITH_RATES = rates_from_per_m(*RATE_3_FLASH)  # one model does everything
-MAIN_RATES = rates_from_per_m(*RATE_2_5_FLASH_LITE)
+MAIN_RATES = rates_from_per_m(*RATE_3_1_FLASH_LITE)
 TO_RATES = rates_from_per_m(*RATE_3_FLASH)
 SCOUT_RATES = rates_from_per_m(*RATE_3_5_FLASH_LITE)
 GEN_RATES = rates_from_per_m(*RATE_3_6_FLASH)

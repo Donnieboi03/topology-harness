@@ -66,7 +66,7 @@ plane-audit  →  cycle(plane, revise)
 | Step | Owner | Notes |
 | :--- | :--- | :--- |
 | `plane-audit` | TTs | Orthogonal failure lenses (e.g. repro ∥ regression ∥ env); **sticky per plane**. Its merge — the TO brief — is the checklist for the next node |
-| `cycle(plane, revise)` | Generator / Critiquer | Critiquer is the evaluator plane; Generator is the `revise` transition. Hard evidence exits; **sticky** until TO releases |
+| `cycle(plane, revise)` | Generator / Critiquer | Critiquer is the evaluator plane; Generator is the `revise` transition. Hard evidence exits; sticky resume until TO releases, idle TTL, or session end |
 
 **When:** Bugs, regressions, “works on my machine,” multi-cause failures.
 
