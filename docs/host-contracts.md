@@ -1,7 +1,11 @@
-# Host contracts (Cursor ↔ Hermes)
+# Host contracts (sticky + retire)
 
-Shared control-plane contracts both hosts must honor. Doctrine lives in this
-package; hosts supply spawn/resume, chat, and storage paths.
+Shared control-plane contracts every host binding must honor. Doctrine lives in
+this package; hosts supply spawn/resume, chat, and storage paths.
+
+**Product binding example:** Hermes is a full runtime host.  
+**IDE adapter example:** Cursor approximates Main/TO/TT via chat + Task for
+operator-local design/consul — not a peer shipped product host.
 
 ## Sticky registry (shared fields)
 
@@ -21,10 +25,10 @@ resume map** — not a knowledge archive. See [sticky-registry.md](sticky-regist
 Constants: `STICKY_HANDLE_KINDS`, `STICKY_PERSIST_KEYS`, `STICKY_IDLE_TTL_SECONDS`
 (default 24h; env `TOPOLOGY_HARNESS_STICKY_IDLE_TTL`).
 
-| Host | Registry path |
+| Binding | Registry path |
 | :--- | :--- |
-| Cursor | `.cursor/topology-sticky/registry.json` |
-| Hermes (example host) | `$HERMES_HOME/state/sticky/<session>.json` (via host bridge) |
+| Hermes (product host example) | `$HERMES_HOME/state/sticky/<session>.json` (via host bridge) |
+| Cursor (operator IDE adapter) | `.cursor/topology-sticky/registry.json` |
 
 ### Lifecycle
 
@@ -38,7 +42,7 @@ Constants: `STICKY_HANDLE_KINDS`, `STICKY_PERSIST_KEYS`, `STICKY_IDLE_TTL_SECOND
 After load: call `purge_idle()` before injecting Main's card. Main card uses
 `topics_for_main(limit=1)`; route coerce uses full live `open_topics()` after purge.
 
-## Retire helper (both hosts)
+## Retire helper (every binding)
 
 Primary durable flush (blackboard / KG) — **not** the same as sticky release:
 
@@ -62,6 +66,6 @@ Mid-topic (still TO-gated): `Blackboard.append_evidence`,
 
 ## Adapters
 
-- Cursor: [adapters/cursor.md](adapters/cursor.md)
-- Hermes (or any other host): bind sticky paths, spawn/resume, and nest depth
+- Cursor (operator IDE): [adapters/cursor.md](adapters/cursor.md)
+- Hermes (product host example): bind sticky paths, spawn/resume, and nest depth
   in the host; this package stays host-agnostic.

@@ -4,9 +4,9 @@ Optional **synthetic** A/B helpers for hosts that want to **measure** cast
 math offline. Not live session accounting.
 
 **Live spend** is host-owned: Hermes session DB (`estimated_cost_usd`,
-`parent_session_id` tree) plus sticky `topology_urn` join. On Virgil that is
-`scripts/graph_analysis/session_cost.py` and/or `hermes insights`. Do not
-expect this package to open Hermes SQLite.
+`parent_session_id` tree) plus sticky `topology_urn` join. Hosts may join
+session cost to URNs with their own scripts. Do not expect this package to
+open Hermes SQLite.
 
 | Helper | Role |
 | :--- | :--- |
