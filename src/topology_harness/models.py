@@ -211,7 +211,7 @@ def role_model(role: str, *, path: Path | None = None) -> str:
 def resolve_child_model(
     *,
     explicit: str | None = None,
-    hermes_role: str = "leaf",
+    hermes_role: str = "tt",
     atom: str | None = None,
     paradigm: str | None = None,
     delegation_default: str | None = None,
@@ -219,12 +219,16 @@ def resolve_child_model(
 ) -> str:
     """Pick the start model for a delegated child.
 
-    Priority: explicit TO override → orchestrator=TO → atom/paradigm default →
+    Priority: explicit TO override → TO role → atom/paradigm default →
     delegation_default → swarm atom.
+
+    ``hermes_role`` takes the canonical Compound Topologies names ``tt`` /
+    ``to``; the legacy Hermes spellings ``leaf`` / ``orchestrator`` are
+    accepted as aliases.
     """
     if explicit and str(explicit).strip():
         return assert_allowed(str(explicit).strip(), path=path)
-    role = (hermes_role or "leaf").strip().lower()
+    role = (hermes_role or "tt").strip().lower()
     if role in {"orchestrator", "topic_owner", "to"}:
         return role_model("topic_owner", path=path)
     key = resolve_atom_key(atom) or resolve_atom_key(paradigm)

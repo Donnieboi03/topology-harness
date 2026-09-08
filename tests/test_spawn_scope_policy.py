@@ -122,7 +122,72 @@ def test_spawn_policy_blocks_main_leaf_for_topic_work() -> None:
     )
 
 
-def test_durable_memory_and_evidence() -> None:
+def test_spawn_policy_everyday_fix_not_substantive() -> None:
+    """Everyday 'fix' is not in the fan-required bag (FP closed)."""
+    assert (
+        assert_spawn_policy(
+            parent_depth=0,
+            role="leaf",
+            goal="please fix the typo in the README",
+            open_topics=[],
+        )
+        == "leaf"
+    )
+
+
+def test_spawn_policy_implement_solo_helper_without_topic() -> None:
+    """Implement without a named topic is One-helper OK (Solo does not spawn)."""
+    assert (
+        assert_spawn_policy(
+            parent_depth=0,
+            role="worker",
+            goal="Implement priority codebase fixes",
+            open_topics=[],
+        )
+        == "leaf"
+    )
+
+
+def test_spawn_policy_planner_role_alias() -> None:
+    assert (
+        assert_spawn_policy(
+            parent_depth=0,
+            role="planner",
+            topic="auth-refresh",
+            goal="Implement priority codebase fixes",
+            open_topics=[],
+        )
+        == "topic"
+    )
+
+
+def test_spawn_policy_compound_token_still_blocks_main_leaf() -> None:
+    with pytest.raises(SpawnPolicyError):
+        assert_spawn_policy(
+            parent_depth=0,
+            role="leaf",
+            goal="run a research-swarm on auth",
+            open_topics=[],
+        )
+    assert (
+        assert_spawn_policy(
+            parent_depth=0,
+            role="leaf",
+            goal="run a research-swarm on auth",
+            open_topics=[],
+            allow_informal_leaf=True,
+        )
+        == "leaf"
+    )
+
+
+def test_durable_can_write_planner_alias() -> None:
+    assert_can_write("planner")
+    with pytest.raises(PermissionError):
+        assert_can_write("worker")
+    with pytest.raises(PermissionError):
+        assert_can_write("chat")
+
     assert_can_write("orchestrator")
     assert_can_write("topic_owner")
     with pytest.raises(PermissionError):

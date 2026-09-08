@@ -35,7 +35,7 @@ def test_assert_allowed_rejects_unknown():
 def test_role_model_control_plane_only():
     assert role_model("main") == "google/gemini-3.1-flash-lite"
     assert role_model("TO") == role_model("topic_owner")
-    assert role_model("orchestrator") == "google/gemini-3-flash-preview"
+    assert role_model("orchestrator") == "google/gemini-3.7-flash"
 
 
 def test_legacy_skill_aliases_map_to_atoms():
@@ -48,7 +48,7 @@ def test_atom_model_and_aliases():
     assert atom_model("swarm") == "google/gemini-3.5-flash-lite"
     assert atom_model("plane") == "google/gemini-3.5-flash-lite"
     assert atom_model("cove") == "google/gemini-3.1-flash-lite"
-    assert atom_model("shard") == "google/gemini-3.6-flash"
+    assert atom_model("shard") == "google/gemini-3.7-flash"
     assert resolve_atom_key("plane-audit") == "plane"
     assert resolve_atom_key("verify-claims") == "cove"
     assert atom_model("research-swarm") == atom_model("swarm")
@@ -65,11 +65,11 @@ def test_resolve_child_model_priority():
     )
     assert (
         resolve_child_model(hermes_role="orchestrator", atom="shard")
-        == "google/gemini-3-flash-preview"
+        == "google/gemini-3.7-flash"
     )
     assert (
         resolve_child_model(hermes_role="leaf", atom="shard")
-        == "google/gemini-3.6-flash"
+        == "google/gemini-3.7-flash"
     )
     assert (
         resolve_child_model(hermes_role="leaf", paradigm="cove")
@@ -80,16 +80,17 @@ def test_resolve_child_model_priority():
 def test_host_model_block_main_down_only_ladder():
     block = host_model_block()
     assert block["model"]["default"] == "google/gemini-3.1-flash-lite"
-    assert block["delegation"]["model"] == "google/gemini-3-flash-preview"
+    assert block["delegation"]["model"] == "google/gemini-3.7-flash"
     models = [f["model"] for f in block["fallback_providers"]]
     # Main starts at 3.1-lite → must NOT try anything above it on the ladder
+    assert "google/gemini-3.7-flash" not in models
     assert "google/gemini-3.6-flash" not in models
     assert "google/gemini-3.5-flash" not in models
     assert "google/gemini-3-flash-preview" not in models
     assert "google/gemini-3.5-flash-lite" not in models
     assert "google/gemini-3.1-flash-lite" not in models
     assert models[0] == "google/gemini-2.5-flash"
-    assert block["atoms"]["shard"] == "google/gemini-3.6-flash"
+    assert block["atoms"]["shard"] == "google/gemini-3.7-flash"
     # Secondary must be allowlisted (normalized); still subject to down-only.
     secondary_models = [
         f["model"]

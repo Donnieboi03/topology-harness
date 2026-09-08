@@ -1,8 +1,14 @@
-"""Intent routing for Main: when to stay in chat, open a TO, or re-fan.
+"""Intent routing for Chat: Solo by default; open a Planner only for complex fans.
 
-No length / keyword heuristics. Hosts ask Main (or a tiny router call) to emit
-a :class:`RouteDecision`. Default follow-up bias: ``to_only`` (resume sticky TO),
-not ``full_refan``.
+No length / keyword heuristics. Hosts ask Chat (or a tiny router call) to emit
+a :class:`RouteDecision`. Default: ``solo`` / ``main_only``. Follow-ups on an
+open Planner topic: ``resume`` / ``to_only`` (not ``full_refan``).
+
+Public aliases (normalized to canonical actions):
+  solo → main_only
+  helper → main_only (+ host may spawn One helper with allow_informal_leaf)
+  planner / open_planner → open_topic
+  resume → to_only
 """
 from __future__ import annotations
 
@@ -24,24 +30,43 @@ VALID_ACTIONS: frozenset[str] = frozenset(
     {"main_only", "open_topic", "to_only", "lens_resume", "full_refan"}
 )
 
-ROUTER_SYSTEM_PROMPT = """You route Compound Topologies follow-ups for Main.
+# Plain-language / ADHD-friendly aliases → canonical RouteAction
+ACTION_ALIASES: dict[str, str] = {
+    "solo": "main_only",
+    "helper": "main_only",
+    "one_helper": "main_only",
+    "planner": "open_topic",
+    "open_planner": "open_topic",
+    "resume": "to_only",
+    "resume_planner": "to_only",
+}
+
+ROUTER_SYSTEM_PROMPT = """You route Compound Topologies turns for Chat (alias: Main).
 Return ONLY compact JSON (no markdown fences):
 {
   "kind": "chat" | "topic",
   "topic": <kebab-slug|null>,
-  "action": "main_only" | "open_topic" | "to_only" | "lens_resume" | "full_refan",
+  "action": "solo" | "main_only" | "helper" | "planner" | "open_topic" | "resume" | "to_only" | "lens_resume" | "full_refan",
   "lenses": [],
   "reason": "<one short line>"
 }
 
+DEFAULT: solo / main_only. Most turns stay in Chat. Do NOT open a Planner for ordinary coding, one-file edits, opinions, or short explains.
+
+Fan criteria (open_topic / planner) — ONLY when:
+- multi-file or multi-surface implement, OR
+- research with unknown surface area, OR
+- user explicitly wants multiple angles / orthogonal lenses.
+
 Rules (intent of the USER message — never use message length):
-- main_only / kind=chat: ONLY pure chit-chat, greetings, usage/status meta, or host system notes with no user work ask.
-- open_topic: substantive new work when that topic is NOT already in open_topics (docs, bugs, features, audits, new skills). Invent a short kebab topic slug. Empty open_topics does NOT mean main_only.
-- to_only: continue an OPEN topic via its TO WITHOUT re-running multi-lens TT research. Prefer this when open_topics is non-empty and the user is continuing that work.
-- lens_resume: user targets one/few specific TT lenses; list those lane ids in "lenses".
-- full_refan: user explicitly wants breadth re-research / re-check ALL TT lenses again.
-- Prefer to_only over full_refan. Prefer open_topic over main_only for real work asks.
-- Never refuse open_topic just because open_topics is empty — that is when open_topic is most common.
+- solo / main_only / kind=chat: default. Chit-chat, meta, one-file work, Solo implement.
+- helper: same as solo for routing; host may spawn One helper Worker (allow_informal_leaf).
+- open_topic / planner: complex new work needing a Planner (and maybe Workers). Invent kebab slug.
+- to_only / resume: continue an OPEN Planner topic WITHOUT re-running multi-lens Workers.
+- lens_resume: user targets one/few Worker lenses; list those lane ids in "lenses".
+- full_refan: user explicitly wants breadth re-research / ALL lenses again.
+- Prefer resume/to_only over full_refan. Prefer solo over open_topic unless fan criteria match.
+- Workers under a Planner must be orthogonally partitioned (disjoint domains or outlooks).
 """
 
 
@@ -57,7 +82,7 @@ class RouteDecision:
         return asdict(self)
 
     def to_route_line(self) -> str:
-        """One-line form Main can emit before spawning/resuming."""
+        """One-line form Chat can emit before spawning/resuming."""
         topic = self.topic or "-"
         lenses = ",".join(self.lenses) if self.lenses else "-"
         return (
@@ -66,8 +91,13 @@ class RouteDecision:
         )
 
 
+def normalize_route_action(action: str) -> str:
+    a = (action or "").strip().lower()
+    return ACTION_ALIASES.get(a, a)
+
+
 def parse_route_decision(text: str) -> RouteDecision:
-    """Parse JSON or ``route:`` line from a model/Main reply."""
+    """Parse JSON or ``route:`` line from a model/Chat reply."""
     raw = (text or "").strip()
     if not raw:
         raise ValueError("empty route decision")
@@ -117,7 +147,7 @@ def parse_route_decision(text: str) -> RouteDecision:
 
 def validate_route_decision(data: dict[str, Any]) -> RouteDecision:
     kind = str(data.get("kind") or "").strip().lower()
-    action = str(data.get("action") or "").strip().lower()
+    action = normalize_route_action(str(data.get("action") or ""))
     if kind not in {"chat", "topic"}:
         raise ValueError(f"invalid kind: {kind!r}")
     if action not in VALID_ACTIONS:
@@ -149,9 +179,6 @@ def validate_route_decision(data: dict[str, Any]) -> RouteDecision:
             raise ValueError(f"{action} requires topic")
         if action == "lens_resume" and not lenses:
             raise ValueError("lens_resume requires lenses")
-        if action != "lens_resume":
-            # full_refan / to_only ignore stray lenses unless provided
-            pass
 
     if action == "lens_resume":
         keep_lenses = lenses
@@ -204,7 +231,11 @@ def coerce_route_with_registry(
     if decision.topic.strip().lower() not in opened:
         return decision
     reason = decision.reason or ""
-    suffix = "coerced open_topic→to_only (topic already sticky-open)"
+    suffix = (
+        "COERCED open_topic→to_only: topic slug already sticky-open — "
+        "resume the existing Planner (alias TO); invent a new kebab slug if "
+        "this is a different topic (slug collision)"
+    )
     return RouteDecision(
         kind="topic",
         action="to_only",

@@ -33,7 +33,7 @@ Commands:
   topology-harness --version         package version
   topology-harness --doctor | doctor diagnose install + imports + smoke
   topology-harness doctrine | card   print compact control-plane card
-  topology-harness cursor-map        print how Main/TO/TT map onto Cursor Tasks
+  topology-harness cursor-map        print Chat/Planner/Worker → Cursor Task map
   topology-harness compounds         list named compounds
   topology-harness cost-smoke        run synthetic A/B cost smoke
   topology-harness sticky <session>  load sticky JSON for a session id
@@ -46,44 +46,46 @@ USAGE = """Usage:
   PY
 """
 
-DOCTRINE = """# Compound Topologies — control plane (topology-harness)
+DOCTRINE = """# topology-harness — control plane (plain language)
 
-Main
-  └── TO(s)     ← flat only (no TO→TO); one topic per TO
-        └── TT workers    ← compounds / atoms; stubs only; no further spawn
+DEFAULT: Solo. Most turns stay in Chat. Fan only for complex work.
 
-Hard rules
-- Main gates TOs; follow-ups default to_only (sticky resume), not auto re-fan
-- Sticky is ephemeral (24h TO-touch idle TTL / session-end release) — not a KG archive
-- Main card: topics_for_main(limit=1); coerce uses live open_topics after purge_idle
-- Main→leaf blocked for sticky-open / substantive / atomic work (assert_spawn_policy)
-- Public menu — atoms ONLY: swarm | plane | cove | shard (NotAtomicError otherwise)
-- Public combinator: cycle only; public transition: revise only
-- Prefer named compounds (five recipes; topology-harness compounds)
-- Durable writes: assert_can_write — TO only (Main/TT blocked); retire ≠ release
-- Spawn TT under TO: assert_topic_open / topo_gate
-- After parse: coerce_route_with_registry(... open_topics=reg.open_topics())
-- TTs emit TT_STUB_INSTRUCTION stubs; TO merges / speaks to the user
+Chat
+  └── Planner(s)   ← one topic each; no Planner→Planner
+        └── Workers  ← orthogonal stubs only; no further spawn
 
-Cursor host (when using Cursor Rules): this chat = Main; Task sub-agents = TO/TT.
-See docs/adapters/cursor.md.
+Modes: Solo | One helper | Planner+workers
+Fan when: multi-file/multi-surface implement | unknown-surface research | explicit multi-angle
 
-This package is policy — the active host owns spawn/resume/chat/tools.
-Docs: topology-harness/docs/  SKILL: topology-harness/SKILL.md
+Rules
+- Sticky resume when a Planner topic is open (resume/to_only) — do not cold re-fan
+- Chat→Worker blocked for sticky-open / named-topic / atom-compound fans (assert_spawn_policy)
+- One helper: single Worker dig OK without Planner when no topic/atom/fan tokens
+- Workers: seed-only + orthogonal partition (disjoint domains/outlooks)
+- Durable writes: Planner only (assert_can_write)
+- Chat pastes Planner briefs verbatim — do not rewrite
+- Output style (ADHD / i-have-adhd): action first; ≤5 steps; no preamble/closers
+
+Aliases: Chat=Main, Planner=TO/orchestrator, Worker=TT/leaf
+Advanced atoms: swarm|plane|cove|shard — see `topology-harness compounds` / docs/advanced.md
+
+Cursor: this chat = Chat; Task = Planner or Worker. docs/adapters/cursor.md
 """
 
-CURSOR_MAP = """# Cursor host map (Compound Topologies)
+CURSOR_MAP = """# Cursor host map
 
-Main  = this Cursor chat agent (routes; trivial answers in-thread)
-TO    = Task generalPurpose — one per topic; merges TT stubs; user voice
-TT    = Task explore|generalPurpose|shell — one lens/atom; stubs only
+Chat     = this Cursor chat (Solo by default; paste Planner briefs verbatim)
+Planner  = Task generalPurpose — one per topic; merges Worker stubs; authors brief
+Worker   = Task explore|generalPurpose|shell — one orthogonal lens; stubs only
 
-Route autonomously: main_only | open_topic | to_only | lens_resume | full_refan
-Sticky file: .cursor/topology-sticky/registry.json  (StickyRegistry)
-Sticky is ephemeral (purge_idle 24h / release_all on session end); Main sees topics_for_main(1)
-TT prompts: include TT_STUB_INSTRUCTION
-Main must not fan informal leaf Tasks for substantive/sticky work — open TO first
+Modes: Solo | One helper | Planner+workers
+Route: solo/main_only (default) | helper | planner/open_topic | resume/to_only | lens_resume | full_refan
+Fan only: multi-file implement | unknown-surface research | explicit multi-angle
+Sticky: .cursor/topology-sticky/registry.json (ephemeral; purge_idle 24h)
+Workers: TT_STUB_INSTRUCTION / WORKER_STUB_INSTRUCTION; orthogonal seeds; no Planner thesis clones
+ADHD output: lead with next action; numbered steps; no "Hope this helps"
 
+Aliases: Main/TO/TT still accepted in APIs.
 Full adapter: docs/adapters/cursor.md
 """
 
@@ -248,10 +250,14 @@ def run_doctor() -> int:
         print("  cursor adapter doc: (checkout-only; see package README)")
     if cursor_rule.is_file():
         text = cursor_rule.read_text(encoding="utf-8")
-        if "Cursor session is the Compound Topologies host" in text or (
-            "Cursor binding" in text and "Task" in text
+        if (
+            "Solo" in text
+            and "Planner" in text
+            and "Task" in text
+        ) or (
+            "Cursor session is the Compound Topologies host" in text
         ):
-            print("  cursor rule: OK (Cursor chat = Main, Task = TO/TT)")
+            print("  cursor rule: OK (Chat = this session; Task = Planner or Worker)")
         else:
             print("  cursor rule: present (check docs/adapters/cursor.md for expected map)")
     bin_path = Path.home() / ".local" / "bin" / "topology-harness"

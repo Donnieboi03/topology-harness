@@ -187,6 +187,21 @@ def test_validate_and_coerce_route_edges() -> None:
             {"kind": "topic", "action": "lens_resume", "topic": "t", "lenses": []}
         )
 
+    # main_only normalizes kind/topic/lenses regardless of raw payload noise
+    main = validate_route_decision(
+        {
+            "kind": "topic",
+            "action": "main_only",
+            "topic": "should-clear",
+            "lenses": ["x"],
+            "reason": "chat",
+        }
+    )
+    assert main.kind == "chat"
+    assert main.action == "main_only"
+    assert main.topic is None
+    assert main.lenses == []
+
     d = RouteDecision(
         kind="topic", action="to_only", topic="cost-audit", lenses=[], reason=""
     )
@@ -263,13 +278,12 @@ def test_sticky_docs_agree_on_24h_ttl_and_retire_vs_release() -> None:
     root = Path(__file__).resolve().parents[1]
     sticky_doc = (root / "docs" / "sticky-registry.md").read_text(encoding="utf-8")
     host_doc = (root / "docs" / "host-contracts.md").read_text(encoding="utf-8")
-    topo_doc = (root / "docs" / "agent-topologies.md").read_text(encoding="utf-8")
 
     for text in (sticky_doc, host_doc):
         assert "24h" in text or "24 h" in text.lower() or "86400" in text
         assert "retire" in text.lower() and "release" in text.lower()
-        assert "topics_for_main" in text
 
-    # Must not claim sticky lives only until session end without TTL
-    assert "idle TTL" in topo_doc or "24h" in topo_doc or "purge_idle" in topo_doc
+    assert "topics_for_main" in sticky_doc
+    assert "purge_idle" in sticky_doc
+    assert "idle TTL" in sticky_doc or "24h" in sticky_doc
     assert "knowledge archive" not in sticky_doc.lower() or "not a knowledge" in sticky_doc.lower()

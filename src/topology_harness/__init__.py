@@ -61,9 +61,11 @@ from .models import (
     role_model,
 )
 from .routing import (
+    ACTION_ALIASES,
     ROUTER_SYSTEM_PROMPT,
     RouteDecision,
     coerce_route_with_registry,
+    normalize_route_action,
     parse_route_decision,
     should_fan_scouts,
     validate_route_decision,
@@ -80,7 +82,9 @@ from .sticky import (
 )
 from .stubs import (
     TT_STUB_INSTRUCTION,
+    WORKER_STUB_INSTRUCTION,
     parse_tt_stub,
+    parse_worker_stub,
     stubs_to_brief_findings,
 )
 from .telemetry import (
@@ -107,6 +111,7 @@ from .telemetry import (
 
 __all__ = [
     "APPEND_ONLY_REGIONS",
+    "ACTION_ALIASES",
     "ATOMIC_PARADIGMS",
     "ATOM_GATES",
     "Blackboard",
@@ -138,6 +143,7 @@ __all__ = [
     "TRANSITIONS",
     "TRANSITION_MUTATES",
     "TT_STUB_INSTRUCTION",
+    "WORKER_STUB_INSTRUCTION",
     "TaskLedger",
     "TopicNotOpenError",
     "StickyRegistry",
@@ -172,9 +178,11 @@ __all__ = [
     "load_models_config",
     "make_topology_urn",
     "missing_gates",
+    "normalize_route_action",
     "paradigm_for_atom",
     "parse_route_decision",
     "parse_tt_stub",
+    "parse_worker_stub",
     "render_node",
     "resolve_atom_key",
     "resolve_child_model",

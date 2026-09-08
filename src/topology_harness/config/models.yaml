@@ -15,21 +15,22 @@ roles:
   # Main 2026-08-13: bump to 3.1-flash-lite for stronger in-chat inference
   # (was 2.5-flash-lite after main_route cost demotion).
   main: google/gemini-3.1-flash-lite
-  topic_owner: google/gemini-3-flash-preview   # TO merge / orchestrate
+  topic_owner: google/gemini-3.7-flash          # TO merge / orchestrate
 
 # TT defaults by atom (individuated by merge algebra)
 atoms:
   swarm: google/gemini-3.5-flash-lite          # orthogonal questions
   plane: google/gemini-3.5-flash-lite          # orthogonal lenses
   cove: google/gemini-3.1-flash-lite           # orthogonal claims / verify
-  shard: google/gemini-3.6-flash               # orthogonal parts / build
+  shard: google/gemini-3.7-flash               # orthogonal parts / build
 
 preference:
   model: google/gemini-3.1-flash-lite          # Main
-  delegation_model: google/gemini-3-flash-preview  # TO default child when no atom
+  delegation_model: google/gemini-3.7-flash        # TO default child when no atom
 
 # HIGH → LOW. Down-only fallbacks = slice after the start model.
 ladder:
+  - google/gemini-3.7-flash
   - google/gemini-3.6-flash
   - google/gemini-3.5-flash
   - google/gemini-3-flash-preview
@@ -42,6 +43,7 @@ ladder:
 
 # Back-compat alias of ladder
 fallbacks:
+  - google/gemini-3.7-flash
   - google/gemini-3.6-flash
   - google/gemini-3.5-flash
   - google/gemini-3-flash-preview
@@ -53,6 +55,7 @@ fallbacks:
   - openai/gpt-4.1-mini
 
 allowlist:
+  - google/gemini-3.7-flash
   - google/gemini-3.6-flash
   - google/gemini-3.5-flash
   - google/gemini-3.5-flash-lite

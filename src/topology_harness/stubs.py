@@ -1,7 +1,11 @@
-"""TT stub format — short findings for TO merge (not user-facing prose).
+"""Worker stub format — short findings for Planner merge (not user-facing prose).
 
-TTs (Topic Topology workers) extract; the TO transforms into the
-brief / user answer.
+Workers (aliases: TT / leaf) extract; the Planner (alias: TO) transforms into
+the brief / user answer.
+
+When the Planner fans multiple Workers, each Worker MUST be an **orthogonal
+partition**: disjoint domain or distinct outlook. Seed-only goals — never the
+Planner's filled verdict.
 """
 from __future__ import annotations
 
@@ -11,9 +15,11 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 
-TT_STUB_INSTRUCTION = """You are a Topic Topology worker (TT: scout/plane/verifier/…).
+# Back-compat export name
+TT_STUB_INSTRUCTION = """You are a Worker (alias: TT / Topic Topology worker).
 Do NOT write user-facing prose.
-Return ONLY a compact stub (JSON preferred, or ≤5 bullets under fixed headings).
+Investigate FIRST with your allowed tools, THEN return ONLY a compact stub
+(JSON preferred, or ≤5 bullets under fixed headings).
 
 JSON shape:
 {
@@ -21,13 +27,20 @@ JSON shape:
   "bullets": ["…", "…"],
   "sources": ["…"],
   "open": ["…"],
-  "confidence": "low|medium|high"
+  "confidence": "low|medium|high",
+  "tools_used": ["skill_view|session_search|skills_list|…"]
 }
 
-Rules: max 5 bullets; no greetings; no "Next Step" essays; facts/citations only.
-Report your lane's angle even when it diverges from the obvious/majority reading; do not converge for agreement.
-The TO will merge stubs into the brief and speak to the user.
+Rules:
+- Max 5 bullets; no greetings; no "Next Step" essays; facts/citations only.
+- Never emit a stub from titles alone without at least one tool call this turn.
+- ORTHOGONAL PARTITION: your lane is a disjoint domain or distinct outlook.
+  Do not clone the Planner thesis. Do not converge for agreement.
+- Seed-only: invent from your seed + tools — no answer-keys pasted by the Planner.
+The Planner (alias TO) merges stubs into the brief and speaks to the user.
 """
+
+WORKER_STUB_INSTRUCTION = TT_STUB_INSTRUCTION
 
 
 @dataclass
@@ -45,6 +58,10 @@ class TTStub:
         return json.dumps(self.to_dict(), ensure_ascii=False)
 
 
+# Alias
+WorkerStub = TTStub
+
+
 def format_tt_stub(
     lane: str,
     *,
@@ -60,6 +77,9 @@ def format_tt_stub(
         open=[o.strip() for o in (open_items or []) if o.strip()][:5],
         confidence=confidence if confidence in {"low", "medium", "high"} else "medium",
     )
+
+
+format_worker_stub = format_tt_stub
 
 
 def parse_tt_stub(text: str, *, default_lane: str = "unknown") -> TTStub:
@@ -98,9 +118,12 @@ def parse_tt_stub(text: str, *, default_lane: str = "unknown") -> TTStub:
     return TTStub(lane=default_lane, bullets=lines, confidence="medium")
 
 
+parse_worker_stub = parse_tt_stub
+
+
 def stubs_to_brief_findings(stubs: list[TTStub]) -> str:
-    """Markdown block the TO can paste under Findings (merged)."""
-    parts: list[str] = ["## Findings (from TT stubs)", ""]
+    """Markdown block the Planner can paste under Findings (merged)."""
+    parts: list[str] = ["## Findings (from Worker stubs)", ""]
     for stub in stubs:
         parts.append(f"### {stub.lane} (confidence={stub.confidence})")
         for b in stub.bullets:

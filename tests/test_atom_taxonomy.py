@@ -1,6 +1,6 @@
 """Atom taxonomy: four atoms, public cycle/revise, refine-loop bridge.
 
-Covers the model in docs/atom-theory.md — closed primitives, open composition.
+Covers closed primitives / open composition (docs/advanced.md, docs/compounds.md).
 """
 from __future__ import annotations
 

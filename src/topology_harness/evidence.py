@@ -14,7 +14,7 @@ CODE_GATES: tuple[str, ...] = (
 # Gates for `shard`: the only atom whose merge is a *partial* function — N
 # workers can each succeed and assembly still fail. Names stay domain-neutral:
 # `assembles_clean` means "terminology consistent, cross-references resolve" for
-# a document exactly as much as "it links" for a module. See docs/atom-theory.md.
+# a document exactly as much as "it links" for a module. See docs/advanced.md.
 SHARD_GATES: tuple[str, ...] = (
     "interfaces_agree",
     "no_overlapping_writes",

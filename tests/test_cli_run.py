@@ -11,15 +11,18 @@ def test_doctor_ok() -> None:
 def test_doctrine_mentions_atomics() -> None:
     assert "swarm" in DOCTRINE
     assert "assert_spawn_policy" in DOCTRINE
-    assert "Cursor host" in DOCTRINE
+    assert "Solo" in DOCTRINE
+    assert "Planner" in DOCTRINE
+    assert "Cursor" in DOCTRINE
 
 
 def test_cursor_map_mentions_task() -> None:
     from topology_harness.run import CURSOR_MAP
 
     assert "Task" in CURSOR_MAP
-    assert "Main" in CURSOR_MAP
-    assert "TO" in CURSOR_MAP
+    assert "Chat" in CURSOR_MAP or "Main" in CURSOR_MAP
+    assert "Planner" in CURSOR_MAP or "TO" in CURSOR_MAP
+    assert "Solo" in CURSOR_MAP
 
 
 def test_helpers_ns_has_core() -> None:

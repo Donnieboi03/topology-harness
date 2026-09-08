@@ -1,7 +1,8 @@
-"""Topic Orchestrator (TO)-only durable-memory write gate (host-agnostic).
+"""Planner-only durable-memory write gate (host-agnostic).
 
-Optional capability: when ``persist`` is enabled, only the TO
-(``topic_owner`` / ``orchestrator`` role) may write the host's durable store.
+Optional capability: when ``persist`` is enabled, only the Planner
+(``planner`` / ``topic_owner`` / ``orchestrator`` / ``to``) may write the
+host's durable store. Chat and Workers never write.
 Host-specific backends (files, vaults, DBs) are configured by the host — not
 by this harness.
 """
@@ -20,25 +21,29 @@ def normalize_role(role: str) -> str:
     normalized = (role or "").strip().lower().replace("-", "_").replace(" ", "_")
     aliases = {
         "to": "orchestrator",
+        "planner": "orchestrator",
         "topic_owner": "orchestrator",
         "topicowner": "orchestrator",
         "owner": "orchestrator",
         "orchestrator": "orchestrator",
         "leaf": "tt",
         "tt": "tt",
+        "worker": "tt",
         "topic_topology": "tt",
+        "chat": "main",
+        "main": "main",
     }
     return aliases.get(normalized, normalized)
 
 
 def assert_can_write(role: str) -> None:
-    """Raise PermissionError unless ``role`` is TO."""
+    """Raise PermissionError unless ``role`` is Planner (alias TO)."""
     normalized = normalize_role(role)
     if normalized != ALLOWED_WRITE_ROLE:
         raise PermissionError(
             f"durable-memory write forbidden for role={role!r}; "
-            f"only TO ({ALLOWED_WRITE_ROLE!r}) may write "
-            f"(Main/TT never)"
+            f"only Planner ({ALLOWED_WRITE_ROLE!r}; aliases to/orchestrator) "
+            f"may write (Chat/Worker never)"
         )
 
 

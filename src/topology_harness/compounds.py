@@ -1,6 +1,8 @@
 """Named compound recipes for Compound Topologies.
 
-Wiring lists match docs/compounds.md.
+Wiring lists match docs/compounds.md. The **Planner** (alias TO) owns the
+recipe; **Workers** (alias TT) under swarm/plane steps MUST be orthogonally
+partitioned (disjoint domains or outlooks) — seed-only goals, no Planner thesis clones.
 
 A wiring entry is either a plain atom verb (``"plane-audit"``) or a structured
 node describing a combinator application::
@@ -9,7 +11,7 @@ node describing a combinator application::
 
 ``to-brief`` is **not** a wiring step: it is the merge operator of whichever
 atom precedes it, so it is absorbed into that atom rather than listed. See
-docs/atom-theory.md.
+docs/advanced.md / docs/compounds.md.
 """
 from __future__ import annotations
 

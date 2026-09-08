@@ -11,7 +11,7 @@ _SLUG_RE = re.compile(r"[^a-z0-9]+")
 # Atoms are instances of the generic fan `fan(partition, worker, merge)`,
 # individuated by merge algebra. An atom partitions by content and keeps every
 # output; anything that runs the same task N times and discards some is a
-# combinator. See docs/atom-theory.md.
+# combinator. See docs/advanced.md.
 #
 #   swarm  union                                plane  conjunction (AND-gate)
 #   cove   per-claim three-valued adjudication  shard  assembly under contract

@@ -125,10 +125,12 @@ def test_route_rejects_bad_refan_without_topic() -> None:
 
 
 def test_tt_stub_instruction_anti_convergence() -> None:
-    from topology_harness.stubs import TT_STUB_INSTRUCTION
+    from topology_harness.stubs import TT_STUB_INSTRUCTION, WORKER_STUB_INSTRUCTION
 
-    assert "do not converge for agreement" in TT_STUB_INSTRUCTION.lower()
-    assert "diverges from the obvious" in TT_STUB_INSTRUCTION.lower()
+    low = TT_STUB_INSTRUCTION.lower()
+    assert "do not converge for agreement" in low
+    assert "orthogonal" in low
+    assert WORKER_STUB_INSTRUCTION is TT_STUB_INSTRUCTION
 
 
 def test_tt_stub_parse_and_brief() -> None:
@@ -148,7 +150,7 @@ def test_tt_stub_parse_and_brief() -> None:
         [stub, format_tt_stub("scout_impl", bullets=["step 1", "step 2"])]
     )
     assert "scout_gaps" in markdown and "scout_impl" in markdown
-    assert "Findings (from TT stubs)" in markdown
+    assert "Findings (from Worker stubs)" in markdown
 
 
 def test_coerce_open_topic_when_sticky() -> None:
@@ -163,9 +165,37 @@ def test_coerce_open_topic_when_sticky() -> None:
     )
     coerced = coerce_route_with_registry(d, open_topics=["cost-audit"])
     assert coerced.action == "to_only"
-    assert "coerced" in coerced.reason
+    assert "coerced" in (coerced.reason or "").lower()
+    assert "slug collision" in (coerced.reason or "").lower()
     same = coerce_route_with_registry(d, open_topics=[])
     assert same.action == "open_topic"
+
+
+def test_route_aliases_solo_planner_resume() -> None:
+    solo = validate_route_decision(
+        {"kind": "chat", "action": "solo", "topic": None, "lenses": [], "reason": "x"}
+    )
+    assert solo.action == "main_only"
+    planner = validate_route_decision(
+        {
+            "kind": "topic",
+            "action": "planner",
+            "topic": "auth-fan",
+            "lenses": [],
+            "reason": "multi-angle",
+        }
+    )
+    assert planner.action == "open_topic"
+    resume = validate_route_decision(
+        {
+            "kind": "topic",
+            "action": "resume",
+            "topic": "auth-fan",
+            "lenses": [],
+            "reason": "cont",
+        }
+    )
+    assert resume.action == "to_only"
 
 
 def test_topo_gate_requires_open_topic() -> None:

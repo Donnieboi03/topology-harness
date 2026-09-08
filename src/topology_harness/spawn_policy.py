@@ -1,8 +1,11 @@
 """Fail-closed spawn / delegate topology policy.
 
-Hosts call :func:`assert_spawn_policy` before minting a child. This closes the
-escape hatch where Main spawns an informal ``leaf`` for substantive topic work
-(implement / formalize / compound) and still claims an atomic paradigm.
+Hosts call :func:`assert_spawn_policy` before minting a child.
+
+Solo work happens in Chat **without spawning** — this gate only runs when a
+host actually mints a child. Chat may spawn **One helper** (single Worker)
+for a throwaway dig. Multi-lens / atom / compound fans require a **Planner**
+first (aliases: TO / orchestrator / topic_owner).
 """
 from __future__ import annotations
 
@@ -15,21 +18,36 @@ from .telemetry import (
     resolve_paradigm,
 )
 
-_ORCH = frozenset({"orchestrator", "topic_owner", "to", "moa"})
-_LEAF = frozenset({"leaf", "tt", ""})
+# Planner aliases (TO / orchestrator / topic_owner / …)
+_ORCH = frozenset(
+    {
+        "orchestrator",
+        "topic_owner",
+        "to",
+        "moa",
+        "planner",
+    }
+)
+# Worker aliases (TT / leaf / …)
+_LEAF = frozenset({"leaf", "tt", "worker", ""})
 
-# Goals that must not run as Main → informal leaf.
-_SUBSTANTIVE_RE = re.compile(
+# Goals that force Chat → Planner (not One helper) when spawning a Worker.
+# Compound/atom/topology tokens only — NOT everyday implement/fix/refactor
+# (Solo handles those in-chat without spawning).
+_FAN_REQUIRED_RE = re.compile(
     r"\b("
-    r"implement|formalize|refactor|rewrite|fix|patch|commit|"
     r"audit|compound|topology|orchestrat|swarm|plane|cove|shard|"
     r"generator|critiqu|refine-loop|research-swarm|plane-audit|"
     r"parallel-build|build-shard|"
     r"cycle|revise|re-scope|rescope|swap|"
-    r"verify-claims|handoff|registry|sticky"
+    r"verify-claims|handoff|registry|sticky|"
+    r"multi[- ]?lens|orthogonal|full[_-]?refan"
     r")\b",
     re.I,
 )
+
+# Back-compat name used in older docs/tests
+_SUBSTANTIVE_RE = _FAN_REQUIRED_RE
 
 
 class SpawnPolicyError(PermissionError):
@@ -37,10 +55,14 @@ class SpawnPolicyError(PermissionError):
 
 
 def _norm_role(role: str | None) -> str:
-    r = (role or "leaf").strip().lower()
+    r = (role or "leaf").strip().lower().replace("-", "_")
+    if r in {"chat", "main"}:
+        # Depth-0 parent identity — not a child role; treat as leaf denial path
+        # only when misused as child role (hosts should pass planner/worker).
+        return "leaf"
     if r in _ORCH:
         return "orchestrator"
-    if r in {"leaf", "tt"}:
+    if r in _LEAF or r in {"leaf", "tt", "worker"}:
         return "leaf"
     return r or "leaf"
 
@@ -68,21 +90,21 @@ def assert_spawn_policy(
 ) -> str:
     """Validate a proposed spawn; return the resolved URN paradigm.
 
-    Rules (account for Main→leaf “formalize” failure):
+    Rules:
 
-    1. Main (``parent_depth == 0``) must not spawn ``leaf`` when the topic is
-       already sticky-open — resume the TO (``to_only``) instead.
-    2. Main must not spawn ``leaf`` for substantive goals, or when
-       ``atom`` / ``composition`` / ``compound_id`` / atomic ``paradigm`` is
-       set — open/resume a Topic Orchestrator first.
-    3. Informal Main→leaf is allowed only when ``allow_informal_leaf=True``
-       **or** the ask is trivial (no topic, no atom/composition, goal does not
-       match substantive patterns).
-    4. Resolved paradigm must honor ``atom`` / atomic ``paradigm``; never mint
-       ``leaf`` when an atomic was requested.
-    5. Under a TO (``parent_depth >= 1``), ``leaf``/TT is expected; atomics OK.
+    1. Sticky-open topic → Chat must not spawn a Worker; resume the Planner
+       (``to_only`` / ``resume``).
+    2. Atom / composition / compound / fan-required goal tokens → Chat must
+       spawn a Planner first (not a Worker pile).
+    3. **One helper:** Chat→single Worker is allowed when
+       ``allow_informal_leaf=True``, **or** there is no sticky topic, no
+       atom/composition, and the goal is not a fan-required pattern.
+    4. Named topic without sticky still requires Planner before Workers
+       (topic work is Planner-owned once named).
+    5. Under a Planner (``parent_depth >= 1``), Workers + orthogonal atoms OK.
 
-    Returns the paradigm string that must be used in the Topology URN.
+    Role aliases: ``planner``→orchestrator, ``worker``→leaf
+    (also ``to``/``tt``/``topic_owner``).
     """
     depth = int(parent_depth)
     role_n = _norm_role(role)
@@ -106,20 +128,28 @@ def assert_spawn_policy(
         }:
             atomic_paradigm = True
 
-    substantive = bool(_SUBSTANTIVE_RE.search(goal_s)) or has_atom or has_composition or atomic_paradigm
+    fan_required = (
+        bool(_FAN_REQUIRED_RE.search(goal_s))
+        or has_atom
+        or has_composition
+        or atomic_paradigm
+    )
+    # Named topic (even if not yet sticky) → Workers go under Planner
+    needs_planner = bool(topic_n) or fan_required
 
     if depth <= 0 and role_n == "leaf":
         if _topic_open(topic_n, open_topics):
             raise SpawnPolicyError(
                 f"topic {topic_n!r} is already sticky-open — do not spawn a "
-                f"Main→leaf worker. Emit to_only / resume the Topic Orchestrator "
-                f"(role=orchestrator) and let the TO spawn TTs."
+                f"Chat→Worker. Emit resume/to_only and resume the Planner "
+                f"(role=planner|to|orchestrator); let the Planner spawn Workers "
+                f"(aliases: TO/TT)."
             )
-        if not allow_informal_leaf and (topic_n or substantive):
+        if not allow_informal_leaf and needs_planner:
             raise SpawnPolicyError(
-                "Main→leaf blocked for topic/substantive/atomic work. "
-                "Spawn role=orchestrator (Topic Orchestrator) first, or set "
-                "allow_informal_leaf only for true throwaway Q&A. "
+                "Chat→Worker blocked for named-topic / fan / atomic work. "
+                "Spawn role=planner (Planner; alias TO) first, or set "
+                "allow_informal_leaf for One-helper throwaway digs. "
                 f"(topic={topic_n!r}, atom={atom!r}, composition={bool(has_composition)})"
             )
 
