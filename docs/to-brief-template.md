@@ -1,20 +1,20 @@
-# Topic Orchestrator (TO) brief template
+# Planner brief template
 
-Copy into the TO goal / artifact store after TT findings. Generator
-and other producers consume **this brief only** — not raw scout/plane dumps.
+Copy after Worker stubs return. Producers consume **this brief only** — not raw stubs.
 
-TT inputs should be [stubs](tt-stubs.md) (JSON / ≤5 bullets). Paste
-`stubs_to_brief_findings(...)` under Findings, then write Decisions / Open risks
-in your own voice for Main/user.
+> **Aliases:** Chat = Main · Planner = TO · Worker = TT
+
+Paste `stubs_to_brief_findings(...)` under Findings, then write Decisions / risks
+in Planner voice.
 
 ## Brief
 
-**Topic:** …
-**Goal:** …
+**Topic:** …  
+**Goal:** …  
 **Composition:** … (compound id or freeform)
 
 ### Findings
-(from TT stubs)
+(from Worker stubs — orthogonal lanes)
 
 ### Decisions
 …
@@ -25,64 +25,30 @@ in your own voice for Main/user.
 ### Evidence checklist
 …
 
-## Task Ledger (TO-owned, persist on sticky TO `meta.task_ledger`)
-
-Survey before / while fanning TTs. Keep buckets short.
+## Task ledger (`meta.task_ledger`)
 
 | Bucket | Contents |
 | :--- | :--- |
-| `given_or_verified` | Facts already confirmed (user, prior brief, evidence PASS) |
-| `facts_to_lookup` | `{fact, where}` — assign a lane / tool surface |
+| `given_or_verified` | Confirmed facts |
+| `facts_to_lookup` | `{fact, where}` → Worker lane |
 | `facts_to_derive` | Inferences still needed |
-| `educated_guesses` | `{guess, reason}` — label clearly; do not treat as verified |
-| `plan_bullets` | `{step, owner_lane}` — next actions |
+| `educated_guesses` | `{guess, reason}` — labeled |
+| `plan_bullets` | `{step, owner_lane}` |
 
-## Progress Ledger (per inner round, `meta.progress_ledger`)
+## Progress (`meta.progress_ledger`)
 
-Each field is `{reason, answer}` except speaker/instruction strings:
+1. `is_request_satisfied` — true only when evidence helpers PASS
+2. `is_in_loop` — same work, no new evidence
+3. `is_progress_being_made`
+4. `next_speaker` — lane or `planner` / `chat`
+5. `instruction_or_question` — bounded ask
 
-1. `is_request_satisfied` — **only** true when evidence gates PASS
-   (`topology_harness.is_request_satisfied(...)`). Never declare done on vibe.
-2. `is_in_loop` — repeating the same TT work / same failure without new evidence.
-3. `is_progress_being_made` — forward motion this round.
-4. `next_speaker` — sticky lane name or `to` / `main`.
-5. `instruction_or_question` — bounded ask for that speaker.
-
-## Stall rules (`meta.stall` + `StallPolicy`)
-
-- Defaults: `max_stall=3`, `max_reset=2`.
-- Evidence FAIL streak counts as stall (no extra LLM call).
-- On `should_replan()`: **revise Task Ledger / TO brief**; do **not** wipe sticky
-  Gen/Critiquer (or other TT) sessions.
-- After `max_reset` replans without satisfaction → escalate to Main / critical channel.
+Stall defaults: `max_stall=3`, `max_reset=2` → replan brief; escalate to Chat after max.
 
 ## Rules
 
-1. TO writes the brief; TTs do not publish competing briefs to Main.
-2. For `cycle(plane, revise)`, Generator input = brief + prior Generator artifact;
-   Critiquer uses the evidence checklist.
-3. Fail evidence → revise brief or another producer round — do not lower the bar.
-4. Main→TO is **handoff** (ownership of the topic). TO→TT is **as_tool** (bounded
-   turns, stub-only return). Prefer `to_only` / `lens_resume` using `active_lane`
-   on follow-ups.
-
-## Retire flush (durable KB)
-
-On topic retire / release, promote from this brief into
-`topology_harness.retire_topic(...)` — never dump raw TT stubs into
-`conclusions`. Typed payload:
-
-```python
-{
-  "hypotheses": [{"text": "..."}],          # from Open risks / educated_guesses
-  "evidence": [{"claim": "...", "source": "...", "gate": "PASS"}],
-  "open_questions": ["..."],
-  "conclusions": [{"text": "...", "gate": "PASS"}],  # gated only
-  "composition": "...",
-  "model_cast": "...",
-}
-```
-
-Abandon path: `retire_topic(..., abandoned=True)` — marks meta, skips
-conclusions. See [durable-memory.md](durable-memory.md) +
-[host-contracts.md](host-contracts.md).
+1. Planner authors; Workers don’t publish competing briefs
+2. Chat pastes losslessly
+3. Seed-only Worker goals; **orthogonal partition** on swarm/plane fans
+4. Fail evidence → revise; don’t lower the bar
+5. Done: `retire_topic(...)` then release sticky — see [durable-memory.md](durable-memory.md)

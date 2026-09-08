@@ -1,13 +1,18 @@
-# TT stubs
+# Worker stubs
 
-TTs **extract**; the TO **merges** into the brief and is the voice
-toward Main/user.
+Workers **extract**. Planner **merges** into the brief. Chat **pastes** the brief
+verbatim.
 
-## Instruction
+> **Aliases:** Chat = Main · Planner = TO · Worker = TT
 
-Use `TT_STUB_INSTRUCTION` (`topology_harness.stubs`) in the TT system or goal.
+## Rules
 
-JSON shape:
+1. Inject `WORKER_STUB_INSTRUCTION` (= `TT_STUB_INSTRUCTION`)
+2. ≤5 bullets; JSON preferred; no user essays
+3. **Orthogonal partition** — disjoint domain or distinct outlook; no Planner-thesis clones
+4. Seed-only goals — no answer keys / filled verdicts in Worker prompts
+
+## Shape
 
 ```json
 {
@@ -19,17 +24,8 @@ JSON shape:
 }
 ```
 
-Rules: ≤5 bullets; no user-facing essays; facts/citations only.
-Report your lane's angle even when it diverges from the obvious/majority
-reading; do not converge for agreement.
-
 ## Helpers
 
-`TT_STUB_INSTRUCTION`, `parse_tt_stub`, `format_tt_stub`, `stubs_to_brief_findings`.
+`parse_tt_stub` / `parse_worker_stub`, `format_tt_stub`, `stubs_to_brief_findings`.
 
-## TO brief
-
-After stubs return, the TO writes/updates
-[to-brief-template.md](to-brief-template.md) (Findings from
-`stubs_to_brief_findings`) and produces the **single** user-facing answer.
-Downstream producer steps consume the brief only — not raw TT dumps.
+Planner then fills [to-brief-template.md](to-brief-template.md).

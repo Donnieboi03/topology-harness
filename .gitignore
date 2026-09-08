@@ -6,8 +6,9 @@ dist/
 build/
 *.egg-info/
 .DS_Store
+.coverage
+*.coverage
 uv.lock
-HANDOFF.md
 .env
 .env.*
 *.db

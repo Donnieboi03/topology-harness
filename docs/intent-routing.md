@@ -1,57 +1,51 @@
-# Intent routing (follow-ups)
+# Intent routing
 
-Main decides how each user turn maps onto Compound Topologies. **No length or
-keyword heuristics** — route on user intent. Main emits a **`RouteDecision`
-in-band** on the live turn (JSON or a `route:` line). Do not use a separate
-classify-only model for live turns.
+**Default: Solo** (`solo` / `main_only`). Stay in Chat unless fan criteria match.
 
-## Actions
+> **Aliases:** Chat = Main · Planner = TO · Worker = TT
 
-| Action | Meaning |
-| :--- | :--- |
-| `main_only` | Chit-chat / trivia — stay on Main |
-| `open_topic` | First substantive work on a topic — create sticky TO; may fan TTs once |
-| `to_only` | Continue open topic — **resume TO only** (default follow-up) |
-| `lens_resume` | Resume one/few sticky TT lanes, then TO merge |
-| `full_refan` | User explicitly wants breadth re-research — fan default TT lanes again |
+Chat emits a `RouteDecision` in-band (JSON or `route:` line). No length heuristics.
 
-Prefer **`to_only` over `full_refan`**. Prefer **`main_only` over opening a TO** for trivia.
+**Separate layer:** `assert_spawn_policy` fan-token bag is defense-in-depth for
+spawns — not this classifier. Don’t conflate them.
 
-## Emit format
+## Actions + aliases
 
-JSON (preferred) or one line:
+| Alias (prefer) | Canonical | Meaning |
+| :--- | :--- | :--- |
+| `solo` | `main_only` | Default — stay in Chat |
+| `helper` | `main_only` | Same route; host may spawn One helper Worker |
+| `planner` | `open_topic` | New Planner topic — **only if fan criteria** |
+| `resume` | `to_only` | Continue open Planner; no Worker re-fan |
+| — | `lens_resume` | Resume named Worker lanes |
+| — | `full_refan` | Explicit breadth re-research |
+
+**Fan criteria (`planner` / `open_topic`) — ONLY when:**
+
+1. Multi-file or multi-surface implement, or
+2. Research with unknown surface area, or
+3. User wants multiple / orthogonal angles
+
+Prefer `solo` over `planner`. Prefer `resume` over `full_refan`.
+
+## Emit
 
 ```text
-route: to_only kind: topic topic: logging-logs-db lenses: -
+route: solo kind: chat topic: - lenses: -
 ```
 
-Helpers: `topology_harness.routing` (`RouteDecision`, `parse_route_decision`,
-`coerce_route_with_registry`). Optional measurement may reuse
-`ROUTER_SYSTEM_PROMPT` as prompt text only — live product path is Main in-band.
+Helpers: `parse_route_decision`, `coerce_route_with_registry`, `ACTION_ALIASES`.
 
-## Integration
-
-| Layer | Role |
-| :--- | :--- |
-| Harness | Schema + parse/validate + `coerce_route_with_registry` + prompt text |
-| Main (live) | Emit `RouteDecision` before spawn/resume |
-| Host | Sticky registry + spawn/resume using the **coerced** action |
-| Tests | Inject `RouteDecision` — never `len(msg)` |
-
-After parse/validate, hosts should:
+## Coerce
 
 ```python
-reg.purge_idle()  # drop idle sticky (24h TO-touch TTL); no retire
+reg.purge_idle()
 decision = coerce_route_with_registry(
     parse_route_decision(raw),
-    open_topics=registry.open_topics(),  # full live set after purge
+    open_topics=reg.open_topics(),
 )
-# Main prompt card: registry.topics_for_main(limit=1) — keep the cheap Main thin
+# open_topic → to_only when topic already sticky-open
+# Chat card: topics_for_main(limit=1)
 ```
 
-This fails-soft: if Main emits `open_topic` for an already-sticky topic, it becomes
-`to_only` (no cold re-open). Idle / session-end releases sticky so Main's open
-set does not grow without bound; later work re-`open_topic` and rehydrates from
-blackboard / KG when needed.
-
-See also [sticky-registry.md](sticky-registry.md), [tt-stubs.md](tt-stubs.md).
+See [sticky-registry.md](sticky-registry.md).

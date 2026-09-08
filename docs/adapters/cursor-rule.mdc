@@ -1,0 +1,64 @@
+---
+description: topology-harness on Cursor — Solo default; Chat/Planner/Worker; ADHD output
+alwaysApply: true
+---
+
+# topology-harness (Cursor host)
+
+**Most turns are Solo.** When you fan: one Planner owns the topic; Workers return quiet stubs; the user sees one answer.
+
+| Role | Cursor binding |
+| :--- | :--- |
+| **Chat** (alias Main) | This agent — Solo answers; pastes Planner briefs verbatim |
+| **Planner** (alias TO) | `Task` `generalPurpose` — one topic; merges Worker stubs; authors the brief |
+| **Worker** (alias TT) | `Task` `explore` / `generalPurpose` / `shell` — stubs only |
+
+Doctrine: repo `SKILL.md` · Adapter: `docs/adapters/cursor.md` · CLI: `topology-harness`
+
+## Output style (ADHD / i-have-adhd)
+
+Always on for this host. Attribution: [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd).
+
+1. Lead with the next action or verdict — not preamble.
+2. Number multi-step work; one bounded action per step; cap lists at 5.
+3. End with one next step doable in under two minutes (when work remains).
+4. Restate progress each turn when multi-step ("step 3 of 5 done").
+5. Specific time estimates; show what now works after a change.
+6. Errors: location, cause, fix. No drama. No closers ("Hope this helps").
+7. Exceptions: explain fully when asked; confirm before destructive; one clarifying question when ambiguous.
+8. When pasting a Planner brief: paste **verbatim** — do not ADHD-rewrite the Planner's answer.
+
+## Modes
+
+- **Solo** (default) — answer in this chat. No Task fan.
+- **One helper** — one Worker Task for a dig; no Planner.
+- **Planner+workers** — only when fan criteria match.
+
+**Fan criteria (allowlist):** multi-file / multi-surface implement; unknown-surface research; user asks for multiple angles.
+
+Opinion, meta, one-file edit, short explain → Solo.
+
+Status line OK: `Route: solo` | `helper` | `planner` | `resume`.
+
+## When a Planner topic is sticky-open
+
+Resume that Planner. Do not cold re-fan. Sticky file: `.cursor/topology-sticky/registry.json`.
+
+## Worker rules (when Planner fans)
+
+- Include `TT_STUB_INSTRUCTION` / `WORKER_STUB_INSTRUCTION`.
+- **Orthogonal partition:** disjoint domains or distinct outlooks — not clones of the Planner thesis.
+- Seed-only goals (no answer keys / filled verdicts in Worker prompts).
+- Planner merges stubs and authors the user brief; Chat pastes it.
+
+## Durable memory
+
+Planner-only writes (`assert_can_write`). Chat and Workers must not write durable memory.
+
+## Advanced
+
+Atoms (`swarm|plane|cove|shard`) and named compounds: `topology-harness compounds` · `docs/advanced.md`. Not required for day-to-day Solo work.
+
+## Install
+
+Copy or symlink this file to `~/.cursor/rules/topology-harness.mdc`.

@@ -1,44 +1,28 @@
 # Docs index
 
-Compound Topologies — portable multi-agent control plane.
+**Solo default.** Chat / Planner / Worker. Fan only when criteria match.
 
-Start with the [README](../README.md) for purpose and utilization.
+> **Aliases:** Chat = Main · Planner = TO / orchestrator / topic_owner · Worker = TT / leaf
 
-## Hot path
+Start: [../README.md](../README.md) · Agent card: [../SKILL.md](../SKILL.md)
 
-| Doc | Topic |
-| :--- | :--- |
-| [agent-topologies.md](agent-topologies.md) | Atoms + combinators + Main / TO / TT |
-| [compounds.md](compounds.md) | Named compound recipes (prefer these) |
-| [host-contracts.md](host-contracts.md) | Cursor ↔ Hermes sticky + retire contracts |
-
-**Public surface:** atoms `swarm|plane|cove|shard`; combinator `cycle`;
-transition `revise`. The public menu is the registry.
-
-## Operational
+## Day-to-day
 
 | Doc | Topic |
 | :--- | :--- |
-| [sticky-registry.md](sticky-registry.md) | Sticky TO / TT registry |
-| [intent-routing.md](intent-routing.md) | Route actions for Main |
-| [tt-stubs.md](tt-stubs.md) | Short TT findings → TO brief |
-| [to-brief-template.md](to-brief-template.md) | TO brief |
-| [scope-and-tooling-card.md](scope-and-tooling-card.md) | Main→TO envelope |
-| [evidence-gates.md](evidence-gates.md) | Hard exit criteria |
-| [critical-escalation.md](critical-escalation.md) | TT→TO→Main→host |
-| [durable-memory.md](durable-memory.md) | Optional persist (TO writes) + blackboard |
-| [graph_telemetry.md](graph_telemetry.md) | URN + sibling telemetry (`schema_version=2`) |
-| [adapters/cursor.md](adapters/cursor.md) | Cursor as host (Main/TO/TT → chat + Task) |
-| [cost-analysis.md](cost-analysis.md) | Optional A-B measurement helpers |
+| [adapters/cursor.md](adapters/cursor.md) | Cursor host (matches cursor-rule) |
+| [intent-routing.md](intent-routing.md) | Solo / helper / planner / resume |
+| [sticky-registry.md](sticky-registry.md) | Resume map + idle TTL |
+| [tt-stubs.md](tt-stubs.md) | Worker stubs |
+| [to-brief-template.md](to-brief-template.md) | Planner brief |
+| [durable-memory.md](durable-memory.md) | Planner-only writes |
+| [host-contracts.md](host-contracts.md) | Sticky + retire + escalation |
 
-## Optional deep
+## Advanced (atoms / recipes)
 
 | Doc | Topic |
 | :--- | :--- |
-| [atom-theory.md](atom-theory.md) | Why these primitives (§§1–2 + summary; §§3–5 deep ref) |
+| [advanced.md](advanced.md) | Thin index — atoms, compounds, CLI |
+| [compounds.md](compounds.md) | Five named recipes |
 
-Also: [../SKILL.md](../SKILL.md), [../install.md](../install.md),
-[../HANDOFF.md](../HANDOFF.md) (spawn-policy handoff).
-
-Host-specific mappings live under `docs/adapters/` (optional) or in the host
-repo. The core package stays host-agnostic.
+Also: [../install.md](../install.md).
