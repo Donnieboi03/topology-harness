@@ -26,6 +26,7 @@ verbatim.
 
 ## Helpers
 
-`parse_tt_stub` / `parse_worker_stub`, `format_tt_stub`, `stubs_to_brief_findings`.
+`parse_tt_stub` / `parse_worker_stub`, `format_tt_stub` / `format_worker_stub`,
+`stubs_to_brief_findings`.
 
 Planner then fills [to-brief-template.md](to-brief-template.md).

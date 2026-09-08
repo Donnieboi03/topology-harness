@@ -36,6 +36,8 @@ def test_sticky_get_or_create_and_persist(tmp_path: Path) -> None:
     assert orch.parent_run_id == "fan-1"
     orch2, created2 = reg.get_or_create_to("logging-logs-db")  # alias
     assert not created2 and orch2 is orch
+    planner, created_p = reg.get_or_create_planner("logging-logs-db")
+    assert not created_p and planner is orch
     tt, c3 = reg.get_or_create_tt(
         "logging-logs-db",
         "scout_schema",
@@ -176,6 +178,20 @@ def test_route_aliases_solo_planner_resume() -> None:
         {"kind": "chat", "action": "solo", "topic": None, "lenses": [], "reason": "x"}
     )
     assert solo.action == "main_only"
+    helper = validate_route_decision(
+        {"kind": "chat", "action": "helper", "topic": None, "lenses": [], "reason": "x"}
+    )
+    assert helper.action == "main_only"
+    one = validate_route_decision(
+        {
+            "kind": "chat",
+            "action": "one_helper",
+            "topic": None,
+            "lenses": [],
+            "reason": "x",
+        }
+    )
+    assert one.action == "main_only"
     planner = validate_route_decision(
         {
             "kind": "topic",
@@ -186,6 +202,16 @@ def test_route_aliases_solo_planner_resume() -> None:
         }
     )
     assert planner.action == "open_topic"
+    open_planner = validate_route_decision(
+        {
+            "kind": "topic",
+            "action": "open_planner",
+            "topic": "auth-fan",
+            "lenses": [],
+            "reason": "multi-angle",
+        }
+    )
+    assert open_planner.action == "open_topic"
     resume = validate_route_decision(
         {
             "kind": "topic",
@@ -196,6 +222,16 @@ def test_route_aliases_solo_planner_resume() -> None:
         }
     )
     assert resume.action == "to_only"
+    resume_planner = validate_route_decision(
+        {
+            "kind": "topic",
+            "action": "resume_planner",
+            "topic": "auth-fan",
+            "lenses": [],
+            "reason": "cont",
+        }
+    )
+    assert resume_planner.action == "to_only"
 
 
 def test_topo_gate_requires_open_topic() -> None:

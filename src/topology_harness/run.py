@@ -83,7 +83,7 @@ Route: solo/main_only (default) | helper | planner/open_topic | resume/to_only |
 Fan only: multi-file implement | unknown-surface research | explicit multi-angle
 Sticky: .cursor/topology-sticky/registry.json (ephemeral; purge_idle 24h)
 Workers: TT_STUB_INSTRUCTION / WORKER_STUB_INSTRUCTION; orthogonal seeds; no Planner thesis clones
-ADHD output: lead with next action; numbered steps; no "Hope this helps"
+ADHD output: lead with next action; numbered steps; no "Hope this helps" (never ADHD-rewrite Planner briefs)
 
 Aliases: Main/TO/TT still accepted in APIs.
 Full adapter: docs/adapters/cursor.md

@@ -31,7 +31,7 @@ Shared refine node:
 | Step | Who | Notes |
 | :--- | :--- | :--- |
 | `plane-audit` | Workers | Orthogonal failure lenses; sticky per plane |
-| `cycle(plane, revise)` | Gen / Critiquer | Evidence exits |
+| `cycle(plane, revise)` | Planner refine (Worker lenses) | Evidence exits |
 
 **When:** Bugs, regressions, multi-cause failures.
 
@@ -44,7 +44,7 @@ Shared refine node:
 | Step | Who | Notes |
 | :--- | :--- | :--- |
 | `research-swarm` | Scouts | Disjoint sub-queries |
-| `cycle(plane, revise)` | Gen / Critiquer | Build from one brief |
+| `cycle(plane, revise)` | Planner refine (Worker lenses) | Build from one brief |
 
 **When:** New feature / unknown surface.
 
@@ -58,7 +58,7 @@ Shared refine node:
 | :--- | :--- | :--- |
 | Debate swarm | Stance Workers | Opposing outlooks; seed-only |
 | `plane-audit` | Risk Workers | ≠ debate clones |
-| Optional refine | Gen / Critiquer | If implement in-scope |
+| Optional refine | Planner refine (Worker lenses) | If implement in-scope |
 
 **When:** Architecture / roadmap trade-offs.
 
@@ -71,7 +71,7 @@ Shared refine node:
 | Step | Who | Notes |
 | :--- | :--- | :--- |
 | `verify-claims` | Draft / verifiers | Blinded; REFUTED is success |
-| Refine | Gen / Critiquer | Build from reconciled facts |
+| Refine | Planner refine (Worker lenses) | Build from reconciled facts |
 
 **When:** Citation-heavy / factual deliverables.
 

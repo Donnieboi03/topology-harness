@@ -32,15 +32,16 @@ _ORCH = frozenset(
 _LEAF = frozenset({"leaf", "tt", "worker", ""})
 
 # Goals that force Chat → Planner (not One helper) when spawning a Worker.
-# Compound/atom/topology tokens only — NOT everyday implement/fix/refactor
-# (Solo handles those in-chat without spawning).
+# Atom / compound / topology fan tokens only — NOT everyday implement/fix/refactor
+# (Solo handles those in-chat without spawning). Avoid host-ops words
+# (sticky/registry/handoff) — those are not fan criteria.
 _FAN_REQUIRED_RE = re.compile(
     r"\b("
     r"audit|compound|topology|orchestrat|swarm|plane|cove|shard|"
     r"generator|critiqu|refine-loop|research-swarm|plane-audit|"
     r"parallel-build|build-shard|"
     r"cycle|revise|re-scope|rescope|swap|"
-    r"verify-claims|handoff|registry|sticky|"
+    r"verify-claims|"
     r"multi[- ]?lens|orthogonal|full[_-]?refan"
     r")\b",
     re.I,

@@ -10,14 +10,14 @@
 provider: openrouter
 base_url: https://openrouter.ai/api/v1
 
-# Control-plane only
+# Control-plane only (aliases in role_model: chat→main, planner→topic_owner)
 roles:
-  # Main 2026-08-13: bump to 3.1-flash-lite for stronger in-chat inference
+  # Chat (alias Main) 2026-08-13: bump to 3.1-flash-lite for stronger in-chat inference
   # (was 2.5-flash-lite after main_route cost demotion).
   main: google/gemini-3.1-flash-lite
-  topic_owner: google/gemini-3.7-flash          # TO merge / orchestrate
+  topic_owner: google/gemini-3.7-flash          # Planner (alias TO) merge / orchestrate
 
-# TT defaults by atom (individuated by merge algebra)
+# Worker (alias TT) defaults by atom (individuated by merge algebra)
 atoms:
   swarm: google/gemini-3.5-flash-lite          # orthogonal questions
   plane: google/gemini-3.5-flash-lite          # orthogonal lenses

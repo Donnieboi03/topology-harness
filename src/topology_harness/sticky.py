@@ -195,6 +195,7 @@ class StickyRegistry:
             return handle, True
 
     get_or_create_to = get_or_create_orchestrator
+    get_or_create_planner = get_or_create_orchestrator
 
     def get_or_create_tt(
         self,
@@ -244,6 +245,8 @@ class StickyRegistry:
             self._bump_to_touched(t, now=now)
             self._trigger_save()
             return handle, True
+
+    get_or_create_worker = get_or_create_tt
 
     def bind_session(
         self,

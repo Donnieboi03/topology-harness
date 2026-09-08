@@ -34,8 +34,10 @@ def test_assert_allowed_rejects_unknown():
 
 def test_role_model_control_plane_only():
     assert role_model("main") == "google/gemini-3.1-flash-lite"
+    assert role_model("chat") == role_model("main")
     assert role_model("TO") == role_model("topic_owner")
     assert role_model("orchestrator") == "google/gemini-3.7-flash"
+    assert role_model("planner") == role_model("topic_owner")
 
 
 def test_legacy_skill_aliases_map_to_atoms():
@@ -66,6 +68,14 @@ def test_resolve_child_model_priority():
     assert (
         resolve_child_model(hermes_role="orchestrator", atom="shard")
         == "google/gemini-3.7-flash"
+    )
+    assert (
+        resolve_child_model(hermes_role="planner", atom="shard")
+        == "google/gemini-3.7-flash"
+    )
+    assert (
+        resolve_child_model(hermes_role="worker", atom="cove")
+        == "google/gemini-3.1-flash-lite"
     )
     assert (
         resolve_child_model(hermes_role="leaf", atom="shard")

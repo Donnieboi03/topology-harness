@@ -87,8 +87,13 @@ decision = coerce_route_with_registry(
 ```python
 from topology_harness import assert_spawn_policy
 # Chat→Worker blocked for sticky-open / named topic / atom-compound fans
-# One helper OK without topic when no fan tokens (allow_informal_leaf)
-assert_spawn_policy(parent_depth=0, role="planner", topic="auth-refresh", goal=…)
+assert_spawn_policy(
+    parent_depth=0, role="planner", topic="auth-refresh", goal="…"
+)
+# One helper OK without topic when no fan tokens:
+assert_spawn_policy(
+    parent_depth=0, role="worker", goal="Implement the fix", open_topics=[]
+)
 ```
 
 ### Stubs / durable / evidence

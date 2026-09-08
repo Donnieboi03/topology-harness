@@ -148,6 +148,30 @@ def test_spawn_policy_implement_solo_helper_without_topic() -> None:
     )
 
 
+def test_spawn_policy_sticky_open_blocks_innocuous_goal() -> None:
+    with pytest.raises(SpawnPolicyError, match="sticky-open"):
+        assert_spawn_policy(
+            parent_depth=0,
+            role="worker",
+            topic="auth-refresh",
+            goal="what is next?",
+            open_topics=["auth-refresh"],
+        )
+
+
+def test_spawn_policy_host_ops_words_not_fan_required() -> None:
+    """sticky/registry/handoff alone must not force Planner."""
+    assert (
+        assert_spawn_policy(
+            parent_depth=0,
+            role="worker",
+            goal="update sticky registry json and write handoff notes",
+            open_topics=[],
+        )
+        == "leaf"
+    )
+
+
 def test_spawn_policy_planner_role_alias() -> None:
     assert (
         assert_spawn_policy(

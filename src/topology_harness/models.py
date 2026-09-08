@@ -189,10 +189,12 @@ def role_model(role: str, *, path: Path | None = None) -> str:
         "to": "topic_owner",
         "owner": "topic_owner",
         "orchestrator": "topic_owner",
+        "planner": "topic_owner",
         "parent": "main",
         "intent": "main",
         "route": "main",
         "router": "main",
+        "chat": "main",
     }
     key = aliases.get(key, key)
     if key in roles:
@@ -223,14 +225,19 @@ def resolve_child_model(
     delegation_default → swarm atom.
 
     ``hermes_role`` takes the canonical Compound Topologies names ``tt`` /
-    ``to``; the legacy Hermes spellings ``leaf`` / ``orchestrator`` are
-    accepted as aliases.
+    ``to``; plain aliases ``planner`` / ``worker`` / ``chat`` and legacy
+    Hermes spellings ``leaf`` / ``orchestrator`` are accepted.
     """
     if explicit and str(explicit).strip():
         return assert_allowed(str(explicit).strip(), path=path)
-    role = (hermes_role or "tt").strip().lower()
-    if role in {"orchestrator", "topic_owner", "to"}:
+    role = (hermes_role or "tt").strip().lower().replace("-", "_")
+    if role in {"orchestrator", "topic_owner", "to", "planner"}:
         return role_model("topic_owner", path=path)
+    if role in {"chat", "main"}:
+        return role_model("main", path=path)
+    if role in {"worker", "tt", "leaf"}:
+        # Fall through to atom / delegation defaults (Worker has no fixed role model).
+        pass
     key = resolve_atom_key(atom) or resolve_atom_key(paradigm)
     if key:
         return atom_model(key, path=path)

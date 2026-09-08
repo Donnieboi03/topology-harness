@@ -40,3 +40,6 @@ PY
 Helpers: `resolve_paradigm`, `assert_combinator`, `assert_transition`,
 `sibling_telemetry_fields` (`schema_version=2`: URN = atom; `combinator` /
 `transition` as siblings).
+
+Optional host helpers (no separate deep docs): `evidence` gates, `build_scope_card`,
+`topology-harness cost-smoke` A/B figures. Use from Python/`__all__` when needed.

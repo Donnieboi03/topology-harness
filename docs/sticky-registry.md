@@ -23,8 +23,8 @@ Not a knowledge archive — durable KB is [durable-memory.md](durable-memory.md)
 
 ```python
 reg = StickyRegistry(host_session_id="…")
-planner, _ = reg.get_or_create_to("logging-logs-db")  # alias: get_or_create_orchestrator
-worker, _ = reg.get_or_create_tt("logging-logs-db", "scout_schema")
+planner, _ = reg.get_or_create_planner("logging-logs-db")  # aliases: get_or_create_orchestrator / get_or_create_to
+worker, _ = reg.get_or_create_worker("logging-logs-db", "scout_schema")  # alias: get_or_create_tt
 reg.purge_idle()
 reg.topics_for_main(limit=1)
 reg.release_topic("logging-logs-db")
