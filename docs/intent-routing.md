@@ -4,7 +4,9 @@
 
 > **Aliases:** Chat = Main · Planner = TO · Worker = TT
 
-Chat emits a `RouteDecision` in-band (JSON or `route:` line). No length heuristics.
+Chat chooses a route **internally** (helpers: `parse_route_decision`,
+`coerce_route_with_registry`). Do **not** print `Route:` / `route:` /
+RouteDecision JSON to the user — that is host plumbing, not UX.
 
 **Separate layer:** `assert_spawn_policy` fan-token bag is defense-in-depth for
 spawns — not this classifier. Don’t conflate them.
@@ -28,9 +30,13 @@ spawns — not this classifier. Don’t conflate them.
 
 Prefer `solo` over `planner`. Prefer `resume` over `full_refan`.
 
-## Emit
+## Host plumbing (not user-visible)
+
+Hosts may parse JSON / `route:` lines via `parse_route_decision` when wiring
+spawn. **Never surface those lines in the user-facing reply.**
 
 ```text
+# host-internal only — not for Chat→user messages
 route: solo kind: chat topic: - lenses: -
 ```
 

@@ -34,7 +34,7 @@ Sticky (best-effort): `.cursor/topology-sticky/registry.json`.
 1. Nest depth: Chat → Planner → Worker only.
 2. Call `assert_spawn_policy` before every child mint.
 3. Persist sticky; `purge_idle` after load; coerce routes.
-4. Chat emits `RouteDecision` in-band (`solo` / `helper` / `planner` / `resume` aliases OK).
+4. Route **internally** (`solo` / `helper` / `planner` / `resume`); never print route lines to the user.
 5. Map `persist: durable` → store; Planner-only writes via `assert_can_write`.
 6. Escalate criticals Chat → host human channel (see [docs/host-contracts.md](docs/host-contracts.md)).
 

@@ -31,7 +31,7 @@ Attribution: [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd).
 **Fan criteria:** multi-file/multi-surface implement; unknown-surface research;
 user asks for multiple angles.
 
-Status: `Route: solo` | `helper` | `planner` | `resume`
+Route **internally** — never show `Route:` / route dumps to the user.
 
 ## Sticky
 

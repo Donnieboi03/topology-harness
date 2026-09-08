@@ -38,7 +38,7 @@ Always on for this host. Attribution: [ayghri/i-have-adhd](https://github.com/ay
 
 Opinion, meta, one-file edit, short explain → Solo.
 
-Status line OK: `Route: solo` | `helper` | `planner` | `resume`.
+Route **internally** — never print `Route:` / `route:` / RouteDecision lines to the user.
 
 ## When a Planner topic is sticky-open
 
