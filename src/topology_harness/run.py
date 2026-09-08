@@ -79,7 +79,7 @@ Planner  = Task generalPurpose — one per topic; merges Worker stubs; authors b
 Worker   = Task explore|generalPurpose|shell — one orthogonal lens; stubs only
 
 Modes: Solo | One helper | Planner+workers
-Route: solo/main_only (default) | helper | planner/open_topic | resume/to_only | lens_resume | full_refan
+Route internally (never print Route: to the user): solo/main_only (default) | helper | planner/open_topic | resume/to_only | lens_resume | full_refan
 Fan only: multi-file implement | unknown-surface research | explicit multi-angle
 Sticky: .cursor/topology-sticky/registry.json (ephemeral; purge_idle 24h)
 Workers: TT_STUB_INSTRUCTION / WORKER_STUB_INSTRUCTION; orthogonal seeds; no Planner thesis clones
