@@ -1,9 +1,10 @@
 ---
 name: topology-harness
 description: >-
-  Compound Topologies (topology-harness): Solo default; Chat / Planner / Worker;
-  modes Solo | One helper | Planner+workers. Sticky lanes; intent routing;
-  Worker stubs; assert_spawn_policy / topo_gate / coerce_route / assert_can_write.
+  Compound Topologies (topology-harness): Planner (TO) default for actionable
+  work; Solo only for easy direct Q&A; Chat / Planner / Worker; modes Solo |
+  One helper | Planner+workers. Sticky lanes; intent routing; Worker stubs;
+  assert_spawn_policy / topo_gate / coerce_route / assert_can_write.
   On Cursor this chat is Chat — Task sub-agents are Planner/Worker
   (docs/adapters/cursor.md). Route without waiting for “multi-agent.”
   CLI: topology-harness doctrine | cursor-map | --doctor | compounds.
@@ -11,8 +12,8 @@ description: >-
 
 # topology-harness
 
-**Solo first.** Fan only for multi-file/multi-surface implement, unknown-surface
-research, or explicit multi-angle asks.
+**Planner first for action.** Open (or resume) a TO for any multi-step action,
+implement, edit, or research. **Solo only** for easy direct questions.
 
 > **Aliases:** Chat = Main · Planner = TO / orchestrator / topic_owner · Worker = TT / leaf
 
@@ -32,14 +33,14 @@ Attribution: [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd).
 ## Roles
 
 ```
-Chat (Solo)
-  └── Planner(s)   ← flat; no Planner→Planner
+Chat
+  └── Planner(s)   ← default for actionable work; no Planner→Planner
         └── Workers  ← orthogonal stubs; no further spawn
 ```
 
 | Role | Does | Must not |
 | :--- | :--- | :--- |
-| **Chat** | Solo answers; One helper; paste Planner briefs | Rewrite briefs; fan Workers when a topic is sticky-open |
+| **Chat** | Solo Q&A; paste Planner briefs; open/resume Planner | Rewrite briefs; fan Workers when a topic is sticky-open |
 | **Planner** | One topic; merge stubs; author brief | Spawn another Planner; answer-key Worker goals |
 | **Worker** | One orthogonal lens; stub | Talk to the user; spawn |
 
@@ -60,4 +61,4 @@ Chat (Solo)
 ## Advanced
 
 Atoms, named compounds, CLI deep refs: [docs/advanced.md](docs/advanced.md).
-Not required for day-to-day Solo.
+Not required for day-to-day Planner work without Worker fans.

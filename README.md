@@ -1,21 +1,21 @@
 # topology-harness
 
-**Solo by default.** Fan only when work needs it.
+**Planner by default for actionable work.** Solo only for easy direct Q&A.
 
 Portable **control-plane policy** for multi-agent hosts. Not a chat app. Not a
 model router. Hosts own spawn/resume/tools; this package owns who may spawn whom.
 
 ```
-Chat (Solo)
-  └── Planner     ← only when fan criteria match
+Chat
+  └── Planner     ← default for implement / edit / multi-step / research
         └── Workers   ← orthogonal stubs; Planner merges
 ```
 
 | Mode | When |
 | :--- | :--- |
-| **Solo** | Default — answer in Chat |
-| **One helper** | One Worker dig; no Planner |
-| **Planner+workers** | Multi-file/multi-surface implement; unknown-surface research; explicit multi-angle asks |
+| **Solo** | Easy direct question / opinion / meta — one turn, no edits |
+| **One helper** | Optional single Worker dig; prefer Planner for multi-step |
+| **Planner+workers** | Default for any actionable or multi-step work |
 
 > **Aliases:** Chat = Main · Planner = TO / orchestrator / topic_owner · Worker = TT / leaf
 
@@ -37,7 +37,7 @@ Chat (Solo)
 
 | Term | Meaning |
 | :--- | :--- |
-| **Chat** | User-facing agent; Solo answers; pastes Planner briefs verbatim |
+| **Chat** | User-facing agent; Solo for easy Q&A; opens/resumes Planner; pastes briefs verbatim |
 | **Planner** | One topic; fans Workers; authors the brief |
 | **Worker** | One orthogonal lens; stub only |
 | **Atom** | Fan pattern tagged `swarm` / `plane` / `cove` / `shard` |

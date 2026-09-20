@@ -1,8 +1,10 @@
-"""Intent routing for Chat: Solo by default; open a Planner only for complex fans.
+"""Intent routing for Chat: Planner by default for actionable work.
 
 No length / keyword heuristics. Hosts ask Chat (or a tiny router call) to emit
-a :class:`RouteDecision`. Default: ``solo`` / ``main_only``. Follow-ups on an
-open Planner topic: ``resume`` / ``to_only`` (not ``full_refan``).
+a :class:`RouteDecision`. Default: ``planner`` / ``open_topic`` for multi-step
+action, implement, edit, or research. ``solo`` / ``main_only`` only for easy
+direct Q&A. Follow-ups on an open Planner topic: ``resume`` / ``to_only``
+(not ``full_refan``).
 
 Public aliases (normalized to canonical actions):
   solo → main_only
@@ -51,21 +53,25 @@ Return ONLY compact JSON (no markdown fences):
   "reason": "<one short line>"
 }
 
-DEFAULT: solo / main_only. Most turns stay in Chat. Do NOT open a Planner for ordinary coding, one-file edits, opinions, or short explains.
+DEFAULT: planner / open_topic for actionable or multi-step work. Solo ONLY for easy direct Q&A.
 
-Fan criteria (open_topic / planner) — ONLY when:
-- multi-file or multi-surface implement, OR
-- research with unknown surface area, OR
-- user explicitly wants multiple angles / orthogonal lenses.
+Solo allowlist (ALL must hold) — solo / main_only / kind=chat:
+- direct question / opinion / meta — not “do / fix / implement / change”
+- answerable in one turn with no multi-step action
+- no file edits and no unknown-surface research
+
+Otherwise open_topic / planner (or resume if a sticky Planner is open):
+- implement, edit, multi-step plans, research, multi-file / multi-surface work
+- any “do the thing” ask
 
 Rules (intent of the USER message — never use message length):
-- solo / main_only / kind=chat: default. Chit-chat, meta, one-file work, Solo implement.
-- helper: same as solo for routing; host may spawn One helper Worker (allow_informal_leaf).
-- open_topic / planner: complex new work needing a Planner (and maybe Workers). Invent kebab slug.
+- solo / main_only / kind=chat: easy direct Q&A only (see Solo allowlist).
+- helper: same as solo for routing; host may spawn One helper Worker (allow_informal_leaf); prefer planner for multi-step.
+- open_topic / planner: default for actionable new work. Invent kebab slug.
 - to_only / resume: continue an OPEN Planner topic WITHOUT re-running multi-lens Workers.
 - lens_resume: user targets one/few Worker lenses; list those lane ids in "lenses".
 - full_refan: user explicitly wants breadth re-research / ALL lenses again.
-- Prefer resume/to_only over full_refan. Prefer solo over open_topic unless fan criteria match.
+- Prefer resume/to_only over full_refan. Prefer planner/open_topic over solo unless Solo allowlist matches.
 - Workers under a Planner must be orthogonally partitioned (disjoint domains or outlooks).
 """
 

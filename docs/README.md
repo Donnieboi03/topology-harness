@@ -1,6 +1,6 @@
 # Docs index
 
-**Solo default.** Chat / Planner / Worker. Fan only when criteria match.
+**Planner default for action.** Solo only for easy direct Q&A. Chat / Planner / Worker.
 
 > **Aliases:** Chat = Main · Planner = TO / orchestrator / topic_owner · Worker = TT / leaf
 

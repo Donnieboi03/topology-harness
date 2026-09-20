@@ -48,19 +48,20 @@ USAGE = """Usage:
 
 DOCTRINE = """# topology-harness — control plane (plain language)
 
-DEFAULT: Solo. Most turns stay in Chat. Fan only for complex work.
+DEFAULT: Planner (TO) for actionable / multi-step work. Solo ONLY for easy direct Q&A.
 
 Chat
   └── Planner(s)   ← one topic each; no Planner→Planner
         └── Workers  ← orthogonal stubs only; no further spawn
 
 Modes: Solo | One helper | Planner+workers
-Fan when: multi-file/multi-surface implement | unknown-surface research | explicit multi-angle
+Solo when: easy direct question / opinion / meta — one turn, no edits, no research dig
+Else: open or resume Planner (implement / edit / multi-step / research)
 
 Rules
 - Sticky resume when a Planner topic is open (resume/to_only) — do not cold re-fan
 - Chat→Worker blocked for sticky-open / named-topic / atom-compound fans (assert_spawn_policy)
-- One helper: single Worker dig OK without Planner when no topic/atom/fan tokens
+- One helper: optional; prefer Planner for multi-step work
 - Workers: seed-only + orthogonal partition (disjoint domains/outlooks)
 - Durable writes: Planner only (assert_can_write)
 - Chat pastes Planner briefs verbatim — do not rewrite
@@ -74,13 +75,13 @@ Cursor: this chat = Chat; Task = Planner or Worker. docs/adapters/cursor.md
 
 CURSOR_MAP = """# Cursor host map
 
-Chat     = this Cursor chat (Solo by default; paste Planner briefs verbatim)
+Chat     = this Cursor chat (Solo for easy Q&A; paste Planner briefs verbatim; open/resume TO)
 Planner  = Task generalPurpose — one per topic; merges Worker stubs; authors brief
 Worker   = Task explore|generalPurpose|shell — one orthogonal lens; stubs only
 
 Modes: Solo | One helper | Planner+workers
-Route internally (never print Route: to the user): solo/main_only (default) | helper | planner/open_topic | resume/to_only | lens_resume | full_refan
-Fan only: multi-file implement | unknown-surface research | explicit multi-angle
+Route internally (never print Route: to the user): planner/open_topic (default for action) | resume/to_only | solo/main_only (easy Q only) | helper | lens_resume | full_refan
+Solo allowlist: direct Q / opinion / meta; one turn; no edits; no unknown-surface research
 Sticky: .cursor/topology-sticky/registry.json (ephemeral; purge_idle 24h)
 Workers: TT_STUB_INSTRUCTION / WORKER_STUB_INSTRUCTION; orthogonal seeds; no Planner thesis clones
 ADHD output: lead with next action; numbered steps; no "Hope this helps" (never ADHD-rewrite Planner briefs)

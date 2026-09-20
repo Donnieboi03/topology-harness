@@ -1,6 +1,7 @@
 # Cursor adapter
 
-**Solo by default.** This chat is Chat; Task sub-agents are Planner / Worker.
+**Planner by default for actionable work.** Solo only for easy direct Q&A.
+This chat is Chat; Task sub-agents are Planner / Worker.
 
 > **Aliases:** Chat = Main · Planner = TO · Worker = TT  
 > Rule source of truth: [cursor-rule.mdc](cursor-rule.mdc)
@@ -9,7 +10,7 @@
 
 | Role | Cursor |
 | :--- | :--- |
-| **Chat** | This agent — Solo; pastes Planner briefs verbatim |
+| **Chat** | This agent — Solo Q&A; pastes Planner briefs verbatim; opens/resumes Planner |
 | **Planner** | `Task` `generalPurpose` — one topic; merges stubs; authors brief |
 | **Worker** | `Task` `explore` / `generalPurpose` / `shell` — stubs only |
 
@@ -24,12 +25,12 @@ Attribution: [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd).
 
 ## Modes
 
-- **Solo** (default) — no Task fan
-- **One helper** — one Worker dig; no Planner
-- **Planner+workers** — only when fan criteria match
+- **Solo** — easy direct Q&A only; no Task fan
+- **One helper** — optional single Worker dig; prefer Planner for multi-step
+- **Planner+workers** — default for implement / edit / multi-step / research
 
-**Fan criteria:** multi-file/multi-surface implement; unknown-surface research;
-user asks for multiple angles.
+**Solo allowlist (ALL must hold):** direct question / opinion / meta; one-turn
+answer; no edits; no unknown-surface research. Else → `planner` / `resume`.
 
 Route **internally** — never show `Route:` / route dumps to the user.
 

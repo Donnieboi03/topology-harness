@@ -1,6 +1,7 @@
 # Intent routing
 
-**Default: Solo** (`solo` / `main_only`). Stay in Chat unless fan criteria match.
+**Default: Planner** (`planner` / `open_topic`, or `resume` / `to_only` when sticky).
+Open a TO for actionable / multi-step work. **Solo only** for easy direct Q&A.
 
 > **Aliases:** Chat = Main · Planner = TO · Worker = TT
 
@@ -15,20 +16,24 @@ spawns — not this classifier. Don’t conflate them.
 
 | Alias (prefer) | Canonical | Meaning |
 | :--- | :--- | :--- |
-| `solo` | `main_only` | Default — stay in Chat |
+| `solo` | `main_only` | Easy direct Q&A only — stay in Chat |
 | `helper` | `main_only` | Same route; host may spawn One helper Worker |
-| `planner` | `open_topic` | New Planner topic — **only if fan criteria** |
+| `planner` | `open_topic` | New Planner topic — default for actionable work |
 | `resume` | `to_only` | Continue open Planner; no Worker re-fan |
 | — | `lens_resume` | Resume named Worker lanes |
 | — | `full_refan` | Explicit breadth re-research |
 
-**Fan criteria (`planner` / `open_topic`) — ONLY when:**
+**Solo (`solo` / `main_only`) — ONLY when ALL of:**
 
-1. Multi-file or multi-surface implement, or
-2. Research with unknown surface area, or
-3. User wants multiple / orthogonal angles
+1. Direct question / opinion / meta — not “do / fix / implement / change”
+2. Answerable in one turn with no multi-step action
+3. No file edits and no unknown-surface research
 
-Prefer `solo` over `planner`. Prefer `resume` over `full_refan`.
+**Otherwise → `planner` / `open_topic`** (or `resume` if a sticky Planner is open):
+implement, edit, multi-step plans, research, multi-file / multi-surface work,
+or any “do the thing” ask.
+
+Prefer `planner` over `solo`. Prefer `resume` over `full_refan`.
 
 ## Host plumbing (not user-visible)
 
@@ -37,7 +42,7 @@ spawn. **Never surface those lines in the user-facing reply.**
 
 ```text
 # host-internal only — not for Chat→user messages
-route: solo kind: chat topic: - lenses: -
+route: planner kind: topic topic: fix-auth lenses: -
 ```
 
 Helpers: `parse_route_decision`, `coerce_route_with_registry`, `ACTION_ALIASES`.

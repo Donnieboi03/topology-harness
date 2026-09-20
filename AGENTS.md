@@ -1,6 +1,6 @@
 # Agent guidance
 
-1. **Doctrine lives here** — Solo default; Chat / Planner / Worker; sticky; routing; stubs; gates.
+1. **Doctrine lives here** — Planner default for action; Solo for easy Q&A; Chat / Planner / Worker; sticky; routing; stubs; gates.
 2. **Policy package, not a runtime** — hosts own spawn/resume/chat/tools.
 3. **No invented host paths** — no product checkouts or personal session ids in defaults.
 4. **Roles (plain first):** Chat → Planner → Worker.  
