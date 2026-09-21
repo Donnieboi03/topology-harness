@@ -5,19 +5,19 @@ alwaysApply: true
 
 # topology-harness (Cursor host)
 
-**Planner (TO) by default for actionable work.** Solo only for easy direct questions. When you fan: one Planner owns the topic; Workers return quiet stubs; the user sees one answer.
+**Planner (TO) by default for actionable work.** Solo only for easy direct questions. When you fan: one Planner owns the topic; Workers return quiet stubs; the user sees one ADHD answer from Chat.
 
 | Role | Cursor binding |
 | :--- | :--- |
-| **Chat** (alias Main) | This agent — Solo Q&A; pastes Planner briefs verbatim; opens/resumes Planner |
-| **Planner** (alias TO) | `Task` `generalPurpose` — one topic; merges Worker stubs; authors the brief |
+| **Chat** (alias Main) | This agent — Solo Q&A (ADHD); opens/resumes Planner; publishes User card |
+| **Planner** (alias TO) | `Task` `generalPurpose` — one topic; merges Worker stubs; authors User card + Host brief |
 | **Worker** (alias TT) | `Task` `explore` / `generalPurpose` / `shell` — stubs only |
 
 Doctrine: repo `SKILL.md` · Adapter: `docs/adapters/cursor.md` · CLI: `topology-harness`
 
 ## Output style (ADHD / i-have-adhd)
 
-Always on for this host. Attribution: [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd).
+**Always on for Chat → operator.** Attribution: [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd).
 
 1. Lead with the next action or verdict — not preamble.
 2. Number multi-step work; one bounded action per step; cap lists at 5.
@@ -26,7 +26,7 @@ Always on for this host. Attribution: [ayghri/i-have-adhd](https://github.com/ay
 5. Specific time estimates; show what now works after a change.
 6. Errors: location, cause, fix. No drama. No closers ("Hope this helps").
 7. Exceptions: explain fully when asked; confirm before destructive; one clarifying question when ambiguous.
-8. When pasting a Planner brief: paste **verbatim** — do not ADHD-rewrite the Planner's answer.
+8. After a Planner: the operator sees the **User card** (ADHD). Never dump Host brief, Task ledger, Progress, composition/atom ids, or Worker JSON. Do not invent or invert Planner facts. If the Planner omitted a User card, Chat writes one from Decisions — still ADHD, still no host dump.
 
 ## Modes
 
@@ -47,7 +47,7 @@ Resume that Planner. Do not cold re-fan. Sticky file: `.cursor/topology-sticky/r
 - Include `TT_STUB_INSTRUCTION` / `WORKER_STUB_INSTRUCTION`.
 - **Orthogonal partition:** disjoint domains or distinct outlooks — not clones of the Planner thesis.
 - Seed-only goals (no answer keys / filled verdicts in Worker prompts).
-- Planner merges stubs and authors the user brief; Chat pastes it.
+- Planner merges stubs and authors the **User card** + Host brief; Chat publishes the User card only.
 
 ## Durable memory
 

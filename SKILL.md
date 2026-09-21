@@ -24,11 +24,13 @@ implement, edit, or research. **Solo only** for easy direct questions.
 
 Attribution: [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd).
 
+**Chat (Main) always uses this when talking to the operator.** Solo answers and post-Planner turns. Workers never speak to the operator.
+
 1. Verdict / next action first.
 2. ≤5 bullets; number multi-step work.
 3. End with one <2-min next step when work remains.
 4. Errors: location, cause, fix. No closers.
-5. Paste Planner briefs **verbatim** — do not ADHD-rewrite them.
+5. After a Planner returns: publish the Planner **User card** (already ADHD). Do **not** dump Host brief, Task ledger, Progress, composition ids, or Worker JSON. Do **not** invent or invert Planner facts. If the Planner omitted a User card, Chat writes one from Decisions — still ADHD, still no host dump.
 
 ## Roles
 
@@ -40,8 +42,8 @@ Chat
 
 | Role | Does | Must not |
 | :--- | :--- | :--- |
-| **Chat** | Solo Q&A; paste Planner briefs; open/resume Planner | Rewrite briefs; fan Workers when a topic is sticky-open |
-| **Planner** | One topic; merge stubs; author brief | Spawn another Planner; answer-key Worker goals |
+| **Chat** | Solo Q&A (ADHD); open/resume Planner; publish User card | Dump host ledger; invent Planner facts; fan Workers when a topic is sticky-open |
+| **Planner** | One topic; merge stubs; author User card + Host brief | Spawn another Planner; answer-key Worker goals; address the operator |
 | **Worker** | One orthogonal lens; stub | Talk to the user; spawn |
 
 ## Sticky + stubs

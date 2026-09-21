@@ -1,7 +1,8 @@
 # Worker stubs
 
-Workers **extract**. Planner **merges** into the brief. Chat **pastes** the brief
-verbatim.
+Workers **extract**. Planner **merges** into the Host brief and authors the
+**User card**. Chat **publishes the User card** to the operator (ADHD) — not
+stub JSON and not the Host ledger.
 
 > **Aliases:** Chat = Main · Planner = TO · Worker = TT
 

@@ -10,18 +10,20 @@ This chat is Chat; Task sub-agents are Planner / Worker.
 
 | Role | Cursor |
 | :--- | :--- |
-| **Chat** | This agent — Solo Q&A; pastes Planner briefs verbatim; opens/resumes Planner |
-| **Planner** | `Task` `generalPurpose` — one topic; merges stubs; authors brief |
+| **Chat** | This agent — Solo Q&A (ADHD); opens/resumes Planner; publishes User card |
+| **Planner** | `Task` `generalPurpose` — one topic; merges stubs; authors User card + Host brief |
 | **Worker** | `Task` `explore` / `generalPurpose` / `shell` — stubs only |
 
 ## Output style (ADHD)
 
 Attribution: [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd).
 
+**Always on for Chat → operator.** Including after a Planner returns.
+
 1. Verdict / next action first; ≤5 bullets.
 2. Number multi-step; one <2-min next step when work remains.
 3. Errors: location, cause, fix. No closers.
-4. Paste Planner briefs **verbatim** — do not rewrite.
+4. Planner **User card** is the operator text (facts unchanged). Never dump Host brief / ledgers / stub JSON. If no User card, Chat writes ADHD from Decisions — no host dump.
 
 ## Modes
 
@@ -45,7 +47,7 @@ Done: `retire_topic` then `release_topic`. See [host-contracts.md](../host-contr
 - Inject `WORKER_STUB_INSTRUCTION` / `TT_STUB_INSTRUCTION`
 - **Orthogonal partition** — disjoint domains / outlooks
 - Seed-only goals (no answer keys)
-- Planner merges → Chat pastes
+- Planner merges stubs and authors the **User card** + Host brief; Chat publishes the User card only
 
 ## Spawn policy (intent)
 

@@ -25,6 +25,17 @@ def test_cursor_map_mentions_task() -> None:
     assert "Solo" in CURSOR_MAP
 
 
+def test_doctrine_chat_publishes_user_card_not_host_ledger() -> None:
+    from topology_harness.run import CURSOR_MAP
+
+    assert "User card" in DOCTRINE
+    assert "Host ledger" in DOCTRINE
+    assert "verbatim" not in DOCTRINE.lower()
+    assert "User card" in CURSOR_MAP
+    assert "verbatim" not in CURSOR_MAP.lower()
+    assert "ADHD-rewrite" not in CURSOR_MAP
+
+
 def test_helpers_ns_has_core() -> None:
     ns = _helpers_ns()
     assert "ATOMIC_PARADIGMS" in ns

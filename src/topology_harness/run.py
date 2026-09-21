@@ -64,7 +64,7 @@ Rules
 - One helper: optional; prefer Planner for multi-step work
 - Workers: seed-only + orthogonal partition (disjoint domains/outlooks)
 - Durable writes: Planner only (assert_can_write)
-- Chat pastes Planner briefs verbatim — do not rewrite
+- Chat always ADHD to the operator; publish Planner User card only — never dump Host ledger
 - Output style (ADHD / i-have-adhd): action first; ≤5 steps; no preamble/closers
 
 Aliases: Chat=Main, Planner=TO/orchestrator, Worker=TT/leaf
@@ -75,8 +75,8 @@ Cursor: this chat = Chat; Task = Planner or Worker. docs/adapters/cursor.md
 
 CURSOR_MAP = """# Cursor host map
 
-Chat     = this Cursor chat (Solo for easy Q&A; paste Planner briefs verbatim; open/resume TO)
-Planner  = Task generalPurpose — one per topic; merges Worker stubs; authors brief
+Chat     = this Cursor chat (Solo ADHD Q&A; open/resume TO; publish User card only)
+Planner  = Task generalPurpose — one per topic; merges Worker stubs; authors User card + Host brief
 Worker   = Task explore|generalPurpose|shell — one orthogonal lens; stubs only
 
 Modes: Solo | One helper | Planner+workers
@@ -84,7 +84,7 @@ Route internally (never print Route: to the user): planner/open_topic (default f
 Solo allowlist: direct Q / opinion / meta; one turn; no edits; no unknown-surface research
 Sticky: .cursor/topology-sticky/registry.json (ephemeral; purge_idle 24h)
 Workers: TT_STUB_INSTRUCTION / WORKER_STUB_INSTRUCTION; orthogonal seeds; no Planner thesis clones
-ADHD output: lead with next action; numbered steps; no "Hope this helps" (never ADHD-rewrite Planner briefs)
+ADHD output: Chat always ADHD to the operator; User card only after Planner; no host-ledger dump
 
 Aliases: Main/TO/TT still accepted in APIs.
 Full adapter: docs/adapters/cursor.md

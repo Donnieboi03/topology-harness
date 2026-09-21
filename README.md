@@ -37,8 +37,8 @@ Chat
 
 | Term | Meaning |
 | :--- | :--- |
-| **Chat** | User-facing agent; Solo for easy Q&A; opens/resumes Planner; pastes briefs verbatim |
-| **Planner** | One topic; fans Workers; authors the brief |
+| **Chat** | User-facing agent; Solo ADHD Q&A; opens/resumes Planner; publishes User card |
+| **Planner** | One topic; fans Workers; authors User card + Host brief |
 | **Worker** | One orthogonal lens; stub only |
 | **Atom** | Fan pattern tagged `swarm` / `plane` / `cove` / `shard` |
 | **Compound** | Named recipe wiring atoms (see [docs/compounds.md](docs/compounds.md)) |
