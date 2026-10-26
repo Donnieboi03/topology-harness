@@ -23,7 +23,7 @@ Doctrine: repo `SKILL.md` · Adapter: `docs/adapters/cursor.md` · CLI: `topolog
 2. Number multi-step work; one bounded action per step; cap lists at 5.
 3. End with one next step doable in under two minutes (when work remains).
 4. Restate progress each turn when multi-step ("step 3 of 5 done").
-5. Specific time estimates; show what now works after a change.
+5. No time estimates for agent work — they borrow a human-developer prior and are always wrong. Size by concrete scope (files, steps, tests, blockers). Give time only for clock-bound waits (CI, builds, deploys, downloads) that are measured or stated by the tool. Show what now works after a change.
 6. Errors: location, cause, fix. No drama. No closers ("Hope this helps").
 7. Exceptions: explain fully when asked; confirm before destructive; one clarifying question when ambiguous.
 8. After a Planner: the operator sees the **User card** (ADHD). Never dump Host brief, Task ledger, Progress, composition/atom ids, or Worker JSON. Do not invent or invert Planner facts. If the Planner omitted a User card, Chat writes one from Decisions — still ADHD, still no host dump.
